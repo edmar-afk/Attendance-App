@@ -1,149 +1,179 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
+  SafeAreaView,
   View,
   Text,
   Button,
   Image,
   ActivityIndicator,
   Alert,
+  Platform,
+  StatusBar,
 } from "react-native";
-import { Camera } from "expo-camera";
+import { CameraView, useCameraPermissions } from "expo-camera";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+// Assuming api is an axios instance or similar configured for your backend
+import api from "../assets/api"; 
 
-import * as ImagePicker from "expo-image-picker";
-import api from "../assets/api";
-
-const FaceRecognition = () => {
-  const [permission, setPermission] = useState(null);
+export default function FaceRecognition() {
+  const [permission, requestPermission] = useCameraPermissions();
+  const [capturedPhoto, setCapturedPhoto] = useState(null);
+  const [cameraOpen, setCameraOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [userInfo, setUserInfo] = useState(null);
-  const [image, setImage] = useState(null);
+  const [userId, setUserId] = useState(null);
   const cameraRef = useRef(null);
 
   useEffect(() => {
-    (async () => {
-      const { status } = await Camera.requestCameraPermissionsAsync();
-      setPermission(status === "granted");
-    })();
+    const getUserId = async () => {
+      const userData = await AsyncStorage.getItem("userData");
+      if (userData) {
+        const parsed = JSON.parse(userData);
+        setUserId(parsed.id);
+      }
+    };
+    getUserId();
   }, []);
 
-  const uploadFace = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      quality: 0.8,
-    });
+  if (!permission) return <View />;
 
-    if (!result.canceled) {
-      const uri = result.assets[0].uri;
-      setImage(uri);
+  if (!permission.granted) {
+    return (
+      <View className="flex-1 justify-center items-center bg-white">
+        <Text className="mb-4">We need your permission to use the camera</Text>
+        <Button onPress={requestPermission} title="Grant Permission" />
+      </View>
+    );
+  }
 
-      const formData = new FormData();
-      formData.append("face_image", {
-        uri,
-        name: "face.jpg",
-        type: "image/jpeg",
-      });
-
-      try {
-        setLoading(true);
-        await api.post("/register-face/", formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
-        Alert.alert("✅ Face uploaded successfully!");
-      } catch (error) {
-        console.log(error);
-        Alert.alert("❌ Upload failed");
-      } finally {
-        setLoading(false);
-      }
-    }
+  const openCamera = () => {
+    setCameraOpen(true);
+    setCapturedPhoto(null);
   };
 
-  const recognizeFace = async (photoUri) => {
+  const capturePhoto = async () => {
+    if (!cameraRef.current) return;
+
+    const photo = await cameraRef.current.takePictureAsync({
+      base64: true,
+      quality: 0.5,
+    });
+    setCapturedPhoto(photo);
+    setCameraOpen(false);
+  };
+
+  const registerFace = async () => {
+    if (!capturedPhoto || !userId) return;
+
+    setLoading(true);
     const formData = new FormData();
     formData.append("face_image", {
-      uri: photoUri,
+      uri: capturedPhoto.uri,
       name: "face.jpg",
       type: "image/jpeg",
     });
 
     try {
-      setLoading(true);
-      setUserInfo(null);
-
-      const response = await api.post("/match-face/", formData, {
+      // Correct URL structure with user ID
+      const response = await api.post(`/api/register-face/${userId}/`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-
-      if (response.data.match) {
-        setUserInfo(response.data);
-        Alert.alert("✅ Match Found!", `User ID: ${response.data.user_id}`);
-      } else {
-        Alert.alert("No match found");
-      }
+      Alert.alert("Success", `Face registered for ${response.data.name}`);
+      setCapturedPhoto(null);
     } catch (error) {
-      console.log(error);
-      Alert.alert("❌ Error processing image");
+      console.log(error.response?.data || error.message);
+      Alert.alert(
+        "Error",
+        error.response?.data?.message || "Failed to register face"
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  const captureAndRecognize = async () => {
-    if (cameraRef.current) {
-      try {
-        const photo = await cameraRef.current.takePictureAsync({
-          quality: 0.6,
-        });
-        recognizeFace(photo.uri);
-      } catch (error) {
-        console.log(error);
-        Alert.alert("❌ Camera error");
+  const matchFace = async () => {
+    if (!capturedPhoto) return;
+
+    setLoading(true);
+    const formData = new FormData();
+    formData.append("face_image", {
+      uri: capturedPhoto.uri,
+      name: "face.jpg",
+      type: "image/jpeg",
+    });
+
+    try {
+      // Correct URL structure
+      const response = await api.post(`/api/match-face/`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      if (response.data.match) {
+        Alert.alert(
+          "Face Matched",
+          `User: ${response.data.name}\nScore: ${response.data.score.toFixed(2)}`
+        );
+      } else {
+        // This handles the "No face detected" and "No match found" responses
+        Alert.alert("No Match Found", response.data.message || "Try again");
       }
+    } catch (error) {
+      console.log(error.response?.data || error.message);
+      Alert.alert(
+        "Error",
+        error.response?.data?.message || "Failed to match face"
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (permission === null)
-    return <Text className="text-lg">Requesting camera permission...</Text>;
-  if (!permission)
-    return (
-      <Text className="text-lg text-red-500">Camera permission denied</Text>
-    );
-
   return (
-    <View className="flex-1 justify-center items-center bg-white p-5">
-      <Text className="text-2xl font-bold mb-5">Face Recognition</Text>
+    <SafeAreaView className="flex-1 bg-white items-center justify-center">
+      {Platform.OS === "android" ? <StatusBar hidden /> : null}
 
-      <Button title="📸 Upload Face (Register)" onPress={uploadFace} />
+      {!cameraOpen && !capturedPhoto && (
+        <Button title="Open Camera" onPress={openCamera} />
+      )}
 
-      <View className="w-full h-96 mt-7 rounded-lg overflow-hidden">
-        <Camera ref={cameraRef} style={{ flex: 1 }} type="front" />
-      </View>
+      {cameraOpen && (
+        <View className="relative w-72 h-72 bg-black">
+          <CameraView
+            ref={cameraRef}
+            className="w-full h-full"
+            facing="front"
+          />
+          <View className="absolute bottom-4 left-0 right-0 items-center">
+            <Button title="Capture" onPress={capturePhoto} />
+          </View>
+        </View>
+      )}
 
-      <View className="mt-5 w-full">
-        <Button title="📷 Capture & Recognize" onPress={captureAndRecognize} />
-      </View>
+      {capturedPhoto && (
+        <View className="items-center mt-4">
+          <Image
+            source={{ uri: capturedPhoto.uri }}
+            style={{ width: 300, height: 400, borderRadius: 10 }}
+          />
+          <View className="mt-2 w-full px-8">
+            {/* Disable Register if no user ID is available */}
+            <Button 
+                title={`Register Face ${userId ? '' : '(Log In)'}`} 
+                onPress={registerFace} 
+                disabled={!userId} 
+            />
+            <View className="mt-2" />
+            <Button title="Match Face" onPress={matchFace} />
+            <View className="mt-2" />
+            <Button title="Retake" onPress={openCamera} />
+          </View>
+        </View>
+      )}
 
       {loading && (
-        <View className="mt-7 items-center">
-          <ActivityIndicator size="large" />
-          <Text className="mt-2">Processing...</Text>
+        <View className="absolute inset-0 justify-center items-center bg-black bg-opacity-50">
+          <ActivityIndicator size="large" color="#00ff00" />
         </View>
       )}
-
-      {image && (
-        <Image source={{ uri: image }} className="w-48 h-48 rounded-lg mt-5" />
-      )}
-
-      {userInfo && (
-        <View className="mt-5 items-center">
-          <Text className="text-lg font-semibold">✅ Match Found!</Text>
-          <Text>User ID: {userInfo.user_id}</Text>
-          <Text>Name: {userInfo.name}</Text>
-        </View>
-      )}
-    </View>
+    </SafeAreaView>
   );
-};
-
-export default FaceRecognition;
+}
