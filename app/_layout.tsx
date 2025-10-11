@@ -67,6 +67,13 @@ export default function Layout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="attendance-table"
+        options={{
+          href: null, // completely hides it from the navbar
+          tabBarStyle: { display: "none" }, // ensures no bar shows when visited
+        }}
+      />
     </Tabs>
   );
 }

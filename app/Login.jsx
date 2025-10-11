@@ -14,7 +14,6 @@ import {
 import { useRouter } from "expo-router";
 import api from "../assets/api";
 import bgImage from "../assets/images/bg-teal-waves.png";
-import logo from "../assets/images/logo.jpg";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function Login() {
@@ -67,7 +66,11 @@ export default function Login() {
         contentContainerStyle={{ flexGrow: 1, justifyContent: "center" }}
       >
         <View className="mx-auto w-full px-5" style={{ maxWidth: 400 }}>
-          <Image source={logo} className="w-16 h-16 rounded-full mb-4" />
+          <Image
+            source={require("../assets/images/logo.jpg")}
+            className="w-16 h-16 rounded-full mb-4"
+          />
+
           <Text className="text-3xl font-bold text-white mb-2">Sign In</Text>
           <Text className="text-zinc-200 mb-4">
             Enter your School ID and password to sign in

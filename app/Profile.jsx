@@ -1,9 +1,7 @@
-import { View, Text } from "react-native";
+import { View } from "react-native";
 import { useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { SafeAreaView } from "react-native-safe-area-context";
-import FingerPrint from "../component/Fingerprint";
-import GenerateFingerprint from "../component/GenerateFingerprint";
+import Header from "../components/profile/Header";
 
 const Profile = () => {
   useEffect(() => {
@@ -18,13 +16,10 @@ const Profile = () => {
   }, []);
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      <View className="flex-1 items-center justify-center">
-        <Text>Profile</Text>
-        <FingerPrint />
-        <GenerateFingerprint />
-      </View>
-    </SafeAreaView>
+    <View>
+      <Header />
+     
+    </View>
   );
 };
 
