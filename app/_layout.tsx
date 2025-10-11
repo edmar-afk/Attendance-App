@@ -74,6 +74,13 @@ export default function Layout() {
           tabBarStyle: { display: "none" }, // ensures no bar shows when visited
         }}
       />
+       <Tabs.Screen
+        name="face-attendance"
+        options={{
+          href: null, // completely hides it from the navbar
+          tabBarStyle: { display: "none" }, // ensures no bar shows when visited
+        }}
+      />
     </Tabs>
   );
 }

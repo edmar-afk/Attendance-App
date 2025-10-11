@@ -93,7 +93,6 @@ const AttendanceTable = () => {
       <View className="flex flex-row items-center justify-between p-4">
         <View>
           <TimeInAttendanceModal attendanceId={tableId} />
-          <TimeInFaceAttendance />
         </View>
         <TouchableOpacity onPress={handleRefresh} disabled={refreshing}>
           {refreshing ? (

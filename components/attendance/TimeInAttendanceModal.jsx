@@ -15,11 +15,13 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Device from "expo-device";
 import * as Crypto from "expo-crypto";
 import api from "../../assets/api";
+import { useRouter } from "expo-router";
 
 const TimeInAttendanceModal = ({ attendanceId }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const scaleAnim = useRef(new Animated.Value(0)).current;
+  const router = useRouter();
 
   useEffect(() => {
     if (modalVisible) {
@@ -142,7 +144,16 @@ const TimeInAttendanceModal = ({ attendanceId }) => {
                         Time In with Fingerprint
                       </Text>
                     </TouchableOpacity>
-
+                    <TouchableOpacity
+                      className="bg-blue-600 px-6 py-3 rounded-lg mt-3"
+                      onPress={() =>
+                        router.push(`/face-attendance/${attendanceId}`)
+                      }
+                    >
+                      <Text className="text-white font-bold text-base">
+                        Time In with Face Recognition
+                      </Text>
+                    </TouchableOpacity>
                     <TouchableOpacity
                       className="bg-gray-400 px-5 py-3 rounded-lg mt-3"
                       onPress={closeModal}
