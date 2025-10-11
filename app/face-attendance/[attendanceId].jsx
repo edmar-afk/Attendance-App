@@ -32,7 +32,7 @@ const FaceAttendance = () => {
       <WebView
         ref={webviewRef}
         source={{
-          uri: `https://attendance-checker-frontend.vercel.app/face-recognition/?attendanceId=${attendanceId}`,
+          uri: `https://attendance-checker-frontend.vercel.app/face-recognition/`,
         }}
         onLoadEnd={sendUserDataToWebView}
         startInLoadingState
@@ -42,6 +42,14 @@ const FaceAttendance = () => {
             <Text>Loading Face Attendance...</Text>
           </View>
         )}
+        javaScriptEnabled={true}
+        domStorageEnabled={true}
+        mediaPlaybackRequiresUserAction={false}
+        allowsInlineMediaPlayback={true}
+        allowsProtectedMedia={true}
+        // 👇 These are crucial
+        allowsCameraAccess={true}
+        originWhitelist={["*"]}
       />
     </View>
   );
