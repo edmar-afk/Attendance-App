@@ -5,7 +5,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useLocalSearchParams } from "expo-router";
 
 const FaceOutAttendance = () => {
-  const { attendanceId } = useLocalSearchParams();
+  const { attendanceoutId } = useLocalSearchParams();
   const webviewRef = useRef(null);
 
   const sendUserDataToWebView = async () => {
@@ -13,7 +13,7 @@ const FaceOutAttendance = () => {
     if (userData && webviewRef.current) {
       const payload = {
         user: JSON.parse(userData),
-        attendanceId,
+        attendanceoutId,
       };
       const escapedData = JSON.stringify(payload).replace(/'/g, "\\'");
       webviewRef.current.injectJavaScript(`
@@ -42,13 +42,12 @@ const FaceOutAttendance = () => {
             <Text>Loading Face Attendance...</Text>
           </View>
         )}
-        javaScriptEnabled={true}
-        domStorageEnabled={true}
+        javaScriptEnabled
+        domStorageEnabled
         mediaPlaybackRequiresUserAction={false}
-        allowsInlineMediaPlayback={true}
-        allowsProtectedMedia={true}
-        // 👇 These are crucial
-        allowsCameraAccess={true}
+        allowsInlineMediaPlayback
+        allowsProtectedMedia
+        allowsCameraAccess
         originWhitelist={["*"]}
       />
     </View>

@@ -152,7 +152,7 @@ const TimeOutAttendanceModal = ({ attendanceoutId }) => {
                     <TouchableOpacity
                       className="bg-blue-600 px-6 py-3 rounded-lg mt-3"
                       onPress={() =>
-                        router.push(`/face-attendance/${attendanceoutId}`)
+                        router.push(`/face-attendance-out/${attendanceoutId}`)
                       }
                     >
                       <Text className="text-white font-bold text-base">
