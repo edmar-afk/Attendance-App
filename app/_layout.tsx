@@ -55,6 +55,13 @@ export default function Layout() {
           ),
         }}
       />
+       <Tabs.Screen
+        name="FaceAttendance"
+        options={{
+          href: null, // removes from the tab bar
+          tabBarStyle: { display: "none" }, // hides tab bar
+        }}
+      />
       <Tabs.Screen
         name="Profile"
         options={{
@@ -67,6 +74,7 @@ export default function Layout() {
           ),
         }}
       />
+
       <Tabs.Screen
         name="attendance-table"
         options={{

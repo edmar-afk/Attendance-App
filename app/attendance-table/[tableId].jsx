@@ -1,3 +1,5 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -11,7 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import api from "../../assets/api";
 import { useLocalSearchParams } from "expo-router";
 import TimeInAttendanceModal from "../../components/attendance/TimeInAttendanceModal";
-import TimeInFaceAttendance from "../../components/attendance/TimeInFaceAttendance";
+import TimeOutAttendanceModal from "../../components/attendance/TimeOutAttendanceModal";
 
 const AttendanceTable = () => {
   const { tableId, event_name, time_limit } = useLocalSearchParams();
@@ -93,6 +95,7 @@ const AttendanceTable = () => {
       <View className="flex flex-row items-center justify-between p-4">
         <View>
           <TimeInAttendanceModal attendanceId={tableId} />
+          <TimeOutAttendanceModal attendanceoutId={tableId} />
         </View>
         <TouchableOpacity onPress={handleRefresh} disabled={refreshing}>
           {refreshing ? (
