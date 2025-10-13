@@ -55,7 +55,7 @@ export default function Layout() {
           ),
         }}
       />
-       <Tabs.Screen
+      <Tabs.Screen
         name="FaceAttendance"
         options={{
           href: null, // removes from the tab bar
@@ -76,20 +76,28 @@ export default function Layout() {
       />
 
       <Tabs.Screen
+        name="face-register"
+        options={{
+          href: null, // completely hides it from the navbar
+          tabBarStyle: { display: "none" }, // ensures no bar shows when visited
+        }}
+      />
+
+      <Tabs.Screen
         name="attendance-table"
         options={{
           href: null, // completely hides it from the navbar
           tabBarStyle: { display: "none" }, // ensures no bar shows when visited
         }}
       />
-       <Tabs.Screen
+      <Tabs.Screen
         name="face-attendance-out"
         options={{
           href: null, // completely hides it from the navbar
           tabBarStyle: { display: "none" }, // ensures no bar shows when visited
         }}
       />
-       <Tabs.Screen
+      <Tabs.Screen
         name="face-attendance"
         options={{
           href: null, // completely hides it from the navbar

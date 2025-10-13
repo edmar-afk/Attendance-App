@@ -1,10 +1,11 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, Alert } from "react-native";
+import { View, Text, TouchableOpacity, Alert, Image } from "react-native";
 import * as LocalAuthentication from "expo-local-authentication";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Device from "expo-device";
 import * as Crypto from "expo-crypto";
 import api from "../assets/api";
+import fingerprintIcon from "../assets/image/fingerprintIcon.png";
 
 const GenerateFingerprint = () => {
   const [loading, setLoading] = useState(false);
@@ -19,7 +20,7 @@ const GenerateFingerprint = () => {
       }
       await AsyncStorage.setItem("deviceId", deviceId);
     }
-    return deviceId; 
+    return deviceId;
   };
 
   const handleFingerprint = async () => {
@@ -79,15 +80,22 @@ const GenerateFingerprint = () => {
   };
 
   return (
-    <View className="flex-1 items-center justify-center bg-white">
+    <View className="flex-1 items-center justify-center bg-white mt-24 mb-32">
       <TouchableOpacity
         onPress={handleFingerprint}
         disabled={loading}
-        className="px-6 py-3 bg-blue-500 rounded-xl"
+        className="items-center"
       >
-        <Text className="text-gray-800 text-lg">
-          {loading ? "Saving..." : "Generate Fingerprint"}
-        </Text>
+        <Image
+          source={fingerprintIcon}
+          className="w-44 h-44"
+          resizeMode="contain"
+        />
+        <View className="">
+          <Text className="text-green-700 font-bold text-lg">
+            {loading ? "Saving..." : "Generate Fingerprint"}
+          </Text>
+        </View>
       </TouchableOpacity>
     </View>
   );

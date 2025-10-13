@@ -14,6 +14,7 @@ import api from "../../assets/api";
 import { useRouter } from "expo-router";
 import TimeInButton from "../toggles/TimeInButton";
 import TimeOutButton from "../toggles/TimeOutButton";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const AttendanceList = () => {
   const router = useRouter();
@@ -23,6 +24,16 @@ const AttendanceList = () => {
   const [filter, setFilter] = useState("All");
   const [userLocation, setUserLocation] = useState(null);
   const [locationEnabled, setLocationEnabled] = useState(false);
+
+  const [userData, setUserData] = useState(null);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const storedData = await AsyncStorage.getItem("userData");
+      if (storedData) setUserData(JSON.parse(storedData));
+    };
+    fetchUserData();
+  }, []);
 
   const fetchAttendances = async () => {
     try {
@@ -220,16 +231,20 @@ const AttendanceList = () => {
                       <Text className="text-sm text-green-600 font-semibold">
                         {formatted}
                       </Text>
-                      <TimeInButton
-                        attendanceId={item.id}
-                        time={formatted}
-                        onTimeInSuccess={fetchAttendances}
-                      />
-                      <TimeOutButton
-                        attendanceId={item.id}
-                        time={formatted}
-                        onTimeOutSuccess={fetchAttendances}
-                      />
+                      {userData?.first_name === "Admin" && (
+                        <>
+                          <TimeInButton
+                            attendanceId={item.id}
+                            time={formatted}
+                            onTimeInSuccess={fetchAttendances}
+                          />
+                          <TimeOutButton
+                            attendanceId={item.id}
+                            time={formatted}
+                            onTimeOutSuccess={fetchAttendances}
+                          />
+                        </>
+                      )}
                     </View>
                   </View>
                 </TouchableOpacity>

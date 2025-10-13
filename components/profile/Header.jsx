@@ -53,7 +53,7 @@ const Header = () => {
         <Text className="text-gray-800 font-bold text-lg p-4">
           Personal Info
         </Text>
-        <Text>{profile ? profile.year_lvl : "Loading School ID..."}</Text>
+        {/* <Text>{profile ? profile.year_lvl : "Loading School ID..."}</Text> */}
       </View>
     </View>
   );
