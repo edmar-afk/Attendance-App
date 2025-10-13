@@ -73,6 +73,7 @@ const AddAttendance = () => {
         event_name: eventName,
         location: location,
         time_limit: minutes, // backend calculates from now + X minutes
+        is_time_in:true,
       });
 
       if (response.status === 201) {

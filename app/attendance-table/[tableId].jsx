@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ import api from "../../assets/api";
 import { useLocalSearchParams } from "expo-router";
 import TimeInAttendanceModal from "../../components/attendance/TimeInAttendanceModal";
 import TimeOutAttendanceModal from "../../components/attendance/TimeOutAttendanceModal";
+import { useFocusEffect } from "@react-navigation/native";
 
 const AttendanceTable = () => {
   const { tableId, event_name, time_limit } = useLocalSearchParams();
@@ -21,9 +22,20 @@ const AttendanceTable = () => {
   const [loading, setLoading] = useState(true);
   const [remaining, setRemaining] = useState("");
   const [refreshing, setRefreshing] = useState(false);
+  const [attendanceStatus, setAttendanceStatus] = useState({
+    is_time_in: false,
+    is_time_out: false,
+  });
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchAttendanceStatus();
+    }, [tableId])
+  );
 
   useEffect(() => {
     fetchAttendanceRecords();
+    fetchAttendanceStatus();
   }, [tableId]);
 
   useEffect(() => {
@@ -63,9 +75,22 @@ const AttendanceTable = () => {
     }
   };
 
+  const fetchAttendanceStatus = async () => {
+    try {
+      const response = await api.get(`/api/attendance/status/${tableId}/`);
+      setAttendanceStatus({
+        is_time_in: response.data.is_time_in,
+        is_time_out: response.data.is_time_out,
+      });
+    } catch (error) {
+      console.log("Error fetching attendance status:", error);
+    }
+  };
+
   const handleRefresh = () => {
     setRefreshing(true);
     fetchAttendanceRecords();
+    fetchAttendanceStatus();
   };
 
   if (loading) {
@@ -94,9 +119,18 @@ const AttendanceTable = () => {
 
       <View className="flex flex-row items-center justify-between p-4">
         <View>
-          <TimeInAttendanceModal attendanceId={tableId} />
-          <TimeOutAttendanceModal attendanceoutId={tableId} />
+          {remaining !== "Time expired" && (
+            <>
+              {attendanceStatus.is_time_in && (
+                <TimeInAttendanceModal attendanceId={tableId} />
+              )}
+              {attendanceStatus.is_time_out && (
+                <TimeOutAttendanceModal attendanceoutId={tableId} />
+              )}
+            </>
+          )}
         </View>
+
         <TouchableOpacity onPress={handleRefresh} disabled={refreshing}>
           {refreshing ? (
             <ActivityIndicator size="small" color="#000" />

@@ -12,6 +12,8 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Location from "expo-location";
 import api from "../../assets/api";
 import { useRouter } from "expo-router";
+import TimeInButton from "../toggles/TimeInButton";
+import TimeOutButton from "../toggles/TimeOutButton";
 
 const AttendanceList = () => {
   const router = useRouter();
@@ -188,14 +190,18 @@ const AttendanceList = () => {
                       <Text className="text-base text-gray-600 font-bold">
                         Event Name: {item.event_name}
                       </Text>
-                      {min === 0 && sec === 0 && (
+                      {min === 0 && sec === 0 ? (
                         <Text className="text-xs text-red-500 font-bold">
                           Time expired
+                        </Text>
+                      ) : (
+                        <Text className="text-xs text-green-500 font-bold">
+                          Active
                         </Text>
                       )}
                     </View>
 
-                    <Text className="text-xs text-gray-400">
+                    <Text className="text-sm text-gray-400">
                       Date Created:{" "}
                       {new Date(item.date_created).toLocaleString("en-US", {
                         month: "short",
@@ -205,14 +211,26 @@ const AttendanceList = () => {
                     </Text>
 
                     {locationEnabled && item.location && (
-                      <Text className="text-xs text-blue-500">
+                      <Text className="text-sm text-blue-500">
                         Within 20m from you ✅
                       </Text>
                     )}
 
-                    <Text className="text-xs text-green-600 font-semibold">
-                      {formatted}
-                    </Text>
+                    <View className="flex flex-row items-center justify-between">
+                      <Text className="text-sm text-green-600 font-semibold">
+                        {formatted}
+                      </Text>
+                      <TimeInButton
+                        attendanceId={item.id}
+                        time={formatted}
+                        onTimeInSuccess={fetchAttendances}
+                      />
+                      <TimeOutButton
+                        attendanceId={item.id}
+                        time={formatted}
+                        onTimeOutSuccess={fetchAttendances}
+                      />
+                    </View>
                   </View>
                 </TouchableOpacity>
               );
