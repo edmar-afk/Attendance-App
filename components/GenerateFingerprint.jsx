@@ -55,9 +55,16 @@ const GenerateFingerprint = () => {
 
       setLoading(true);
 
-      const userId = await AsyncStorage.getItem("userId");
+      const storedUser = await AsyncStorage.getItem("userData");
+      if (!storedUser) {
+        Alert.alert("Error", "No user data found.");
+        return;
+      }
+
+      const userData = JSON.parse(storedUser);
+      const userId = userData.id;
       if (!userId) {
-        Alert.alert("Error", "No user ID found.");
+        Alert.alert("Error", "User ID not found in user data.");
         return;
       }
 
