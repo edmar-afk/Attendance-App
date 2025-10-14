@@ -15,6 +15,8 @@ import { useLocalSearchParams } from "expo-router";
 import TimeInAttendanceModal from "../../components/attendance/TimeInAttendanceModal";
 import TimeOutAttendanceModal from "../../components/attendance/TimeOutAttendanceModal";
 import { useFocusEffect } from "@react-navigation/native";
+import GenerateReport from "../../components/attendance/GenerateReport";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const AttendanceTable = () => {
   const { tableId, event_name, time_limit } = useLocalSearchParams();
@@ -26,6 +28,15 @@ const AttendanceTable = () => {
     is_time_in: false,
     is_time_out: false,
   });
+  const [userData, setUserData] = useState(null);
+
+  useEffect(() => {
+    const getUserData = async () => {
+      const storedData = await AsyncStorage.getItem("userData");
+      if (storedData) setUserData(JSON.parse(storedData));
+    };
+    getUserData();
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -186,6 +197,9 @@ const AttendanceTable = () => {
           )}
         </View>
       </ScrollView>
+      {userData?.id === 4 && (
+        <GenerateReport attendanceId={tableId} eventName={event_name} />
+      )}
     </View>
   );
 };
