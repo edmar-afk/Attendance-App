@@ -70,11 +70,24 @@ const TimeInAttendanceModal = ({ attendanceId }) => {
       if (!userDataJson) return Alert.alert("Error", "User not found.");
       const userData = JSON.parse(userDataJson);
 
-      const deviceId = await getDeviceId();
+      // ✅ Get the saved deviceId from AsyncStorage
+      const deviceId = await AsyncStorage.getItem("deviceId");
+      if (!deviceId) {
+        Alert.alert(
+          "Error",
+          "No registered device found. Please register your fingerprint first."
+        );
+        return;
+      }
+
+      // Optional: display deviceId in console or alert
+      console.log("Using device ID:", deviceId);
+      // or Alert.alert("Device ID", deviceId);
 
       const verify = await api.get(
         `/api/fingerprints/check/${userData.id}/${deviceId}/`
       );
+
       if (!verify.data.valid) {
         Alert.alert("Error", "Unauthorized fingerprint or device.");
         return;

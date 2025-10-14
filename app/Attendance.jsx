@@ -1,11 +1,33 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import attendancebg from "../assets/image/attendancebg.png";
 import AttendanceLists from "../components/attendance/AttendanceLists";
 import AddAttendance from "../components/attendance/AddAttendance";
+
 const Attendance = () => {
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const checkUser = async () => {
+      try {
+        const userDataString = await AsyncStorage.getItem("userData");
+        if (userDataString) {
+          const userData = JSON.parse(userDataString);
+          if (userData.first_name === "Admin") {
+            setIsAdmin(true);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching userData:", error);
+      }
+    };
+
+    checkUser();
+  }, []);
+
   return (
     <SafeAreaView className="flex-1 bg-white p-4">
       <View className="rounded-2xl overflow-hidden shadow">
@@ -31,7 +53,7 @@ const Attendance = () => {
       </View>
 
       <AttendanceLists />
-      <AddAttendance />
+      {isAdmin && <AddAttendance />}
     </SafeAreaView>
   );
 };

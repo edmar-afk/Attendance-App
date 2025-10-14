@@ -28,6 +28,41 @@ const AttendanceList = () => {
   const [userData, setUserData] = useState(null);
 
   useEffect(() => {
+    let subscription;
+
+    const startWatchingLocation = async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert("Permission Denied", "Location permission is required.");
+        setLocationEnabled(false);
+        return;
+      }
+
+      subscription = await Location.watchPositionAsync(
+        {
+          accuracy: Location.Accuracy.High,
+          timeInterval: 5000,
+          distanceInterval: 1,
+        },
+        (location) => {
+          setUserLocation({
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude,
+            accuracy: location.coords.accuracy,
+          });
+          setLocationEnabled(true);
+        }
+      );
+    };
+
+    startWatchingLocation();
+
+    return () => {
+      if (subscription) subscription.remove();
+    };
+  }, []);
+
+  useEffect(() => {
     const fetchUserData = async () => {
       const storedData = await AsyncStorage.getItem("userData");
       if (storedData) setUserData(JSON.parse(storedData));
@@ -47,26 +82,28 @@ const AttendanceList = () => {
     }
   };
 
-  const getUserLocation = async () => {
-    try {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") {
-        Alert.alert("Permission Denied", "Location permission is required.");
-        setLocationEnabled(false);
-        return;
-      }
+  // const getUserLocation = async () => {
+  //   try {
+  //     const { status } = await Location.requestForegroundPermissionsAsync();
+  //     if (status !== "granted") {
+  //       Alert.alert("Permission Denied", "Location permission is required.");
+  //       setLocationEnabled(false);
+  //       return;
+  //     }
 
-      const location = await Location.getCurrentPositionAsync({});
-      setUserLocation({
-        latitude: location.coords.latitude,
-        longitude: location.coords.longitude,
-      });
-      setLocationEnabled(true);
-      Alert.alert("Location Set!", "Your location has been updated.");
-    } catch (error) {
-      Alert.alert("Error", "Unable to get location.");
-    }
-  };
+  //     const location = await Location.getCurrentPositionAsync({});
+  //     setUserLocation({
+  //       latitude: location.coords.latitude,
+  //       longitude: location.coords.longitude,
+  //     });
+  //     console.log("User Location:", location.coords);
+  //     console.log("Lists of Attendance: ", attendances);
+  //     setLocationEnabled(true);
+  //     Alert.alert("Location Set!", "Your location has been updated.");
+  //   } catch (error) {
+  //     Alert.alert("Error", "Unable to get location.");
+  //   }
+  // };
 
   const getDistanceKm = (lat1, lon1, lat2, lon2) => {
     const R = 6371;
@@ -112,26 +149,30 @@ const AttendanceList = () => {
 
   const nearbyAttendances =
     userLocation && locationEnabled
-      ? filteredAttendances.filter((item) => {
-          if (item.location) {
-            const [latStr, lonStr] = item.location
-              .split(",")
-              .map((v) => v.trim());
-            const lat = parseFloat(latStr);
-            const lon = parseFloat(lonStr);
-            if (!isNaN(lat) && !isNaN(lon)) {
-              const distance = getDistanceKm(
-                userLocation.latitude,
-                userLocation.longitude,
-                lat,
-                lon
-              );
-              return distance <= 0.02; // 20 meters
-            }
-          }
-          return false;
+      ? filteredAttendances.map((item) => {
+          if (!item.location) return { ...item, isNearby: false };
+          const [latStr, lonStr] = item.location
+            .split(",")
+            .map((v) => v.trim());
+          const lat = parseFloat(latStr);
+          const lon = parseFloat(lonStr);
+          if (isNaN(lat) || isNaN(lon)) return { ...item, isNearby: false };
+
+          const distance = getDistanceKm(
+            userLocation.latitude,
+            userLocation.longitude,
+            lat,
+            lon
+          );
+
+          const radius = 0.15; // 20 meters
+          const accuracyKm = (userLocation.accuracy || 10) / 1000;
+
+          const isNearby = distance <= Math.max(radius, accuracyKm);
+
+          return { ...item, isNearby };
         })
-      : filteredAttendances;
+      : filteredAttendances.map((item) => ({ ...item, isNearby: false }));
 
   return (
     <SafeAreaView className="flex-1 p-4">
@@ -154,12 +195,6 @@ const AttendanceList = () => {
               }`}
             >
               Inactive
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity onPress={getUserLocation}>
-            <Text className="font-bold text-blue-500">
-              {locationEnabled ? "Location Set!" : "Turn on Location"}
             </Text>
           </TouchableOpacity>
         </View>
@@ -186,15 +221,22 @@ const AttendanceList = () => {
                 <TouchableOpacity
                   key={item.id}
                   className="w-full rounded-xl bg-white shadow-lg m-2 p-5 mb-4"
-                  onPress={() =>
-                    router.push({
-                      pathname: `/attendance-table/${item.id}`,
-                      params: {
-                        event_name: item.event_name,
-                        time_limit: item.time_limit,
-                      },
-                    })
-                  }
+                  onPress={() => {
+                    if (item.isNearby) {
+                      router.push({
+                        pathname: `/attendance-table/${item.id}`,
+                        params: {
+                          event_name: item.event_name,
+                          time_limit: item.time_limit,
+                        },
+                      });
+                    } else {
+                      Alert.alert(
+                        "Outside Classroom",
+                        "You are outside the classroom. You cannot access this attendance."
+                      );
+                    }
+                  }}
                 >
                   <View className="flex flex-col gap-2">
                     <View className="flex flex-row items-end justify-between">
@@ -222,8 +264,14 @@ const AttendanceList = () => {
                     </Text>
 
                     {locationEnabled && item.location && (
-                      <Text className="text-sm text-blue-500">
-                        Within 20m from you ✅
+                      <Text
+                        className={`text-sm ${
+                          item.isNearby ? "text-blue-500" : "text-red-500"
+                        }`}
+                      >
+                        {item.isNearby
+                          ? "Within classroom ✅"
+                          : "Outside classroom ❌"}
                       </Text>
                     )}
 

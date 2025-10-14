@@ -68,16 +68,25 @@ const GenerateFingerprint = () => {
         return;
       }
 
-      const deviceId = await getDeviceId();
-
+      // Generate unique device ID
+      const deviceId = Crypto.randomUUID
+        ? Crypto.randomUUID()
+        : `${Date.now()}-${Math.random()}`;
       const deviceInfo = {
         device_name: Device.deviceName || "Unknown Device",
         device_id: deviceId,
       };
 
+      // Send to backend
       await api.post(`/api/fingerprints/${userId}/`, deviceInfo);
 
-      Alert.alert("Success", "Fingerprint saved successfully.");
+      // Only save locally if API call succeeds
+      await AsyncStorage.setItem("deviceId", deviceId);
+
+      Alert.alert(
+        "Success",
+        "Fingerprint saved and device registered successfully."
+      );
     } catch (error) {
       console.error(error);
       Alert.alert("Error", "Something went wrong.");

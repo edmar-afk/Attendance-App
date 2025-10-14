@@ -57,7 +57,7 @@ const TimeOutAttendanceModal = ({ attendanceoutId }) => {
       if (!enrolled) return Alert.alert("Error", "No fingerprints enrolled.");
 
       const result = await LocalAuthentication.authenticateAsync({
-        promptMessage: "Scan your fingerprint to time Out",
+        promptMessage: "Scan your fingerprint to time out",
         fallbackLabel: "Use Passcode",
       });
 
@@ -70,11 +70,24 @@ const TimeOutAttendanceModal = ({ attendanceoutId }) => {
       if (!userDataJson) return Alert.alert("Error", "User not found.");
       const userData = JSON.parse(userDataJson);
 
-      const deviceId = await getDeviceId();
+      // ✅ Get the saved deviceId from AsyncStorage
+      const deviceId = await AsyncStorage.getItem("deviceId");
+      if (!deviceId) {
+        Alert.alert(
+          "Error",
+          "No registered device found. Please register your fingerprint first."
+        );
+        return;
+      }
+
+      // Optional: display deviceId in console or alert
+      console.log("Using device ID:", deviceId);
+      // or Alert.alert("Device ID", deviceId);
 
       const verify = await api.get(
         `/api/fingerprints/check/${userData.id}/${deviceId}/`
       );
+
       if (!verify.data.valid) {
         Alert.alert("Error", "Unauthorized fingerprint or device.");
         return;
@@ -88,15 +101,13 @@ const TimeOutAttendanceModal = ({ attendanceoutId }) => {
         }
       );
 
-      Alert.alert("Success", "You have successfully timed in!");
+      Alert.alert("Success", "You have successfully timed out!");
       closeModal();
     } catch (error) {
-      console.error(error.response?.data);
+      console.error(error);
       Alert.alert(
         "Error",
-        error.response?.data?.error ||
-          JSON.stringify(error.response?.data?.debug_raw_data) ||
-          "Something went wrong."
+        error.response?.data?.error || "Something went wrong."
       );
     } finally {
       setLoading(false);
