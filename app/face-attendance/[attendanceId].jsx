@@ -25,14 +25,24 @@ const FaceAttendance = () => {
   };
 
   useEffect(() => {
-    sendUserDataToWebView();
-  }, []);
+    if (showWebView) sendUserDataToWebView();
+  }, [showWebView]);
 
-  // 👇 Stop WebView when navigating away
   useFocusEffect(
     useCallback(() => {
       setShowWebView(true);
       return () => {
+        if (webviewRef.current) {
+          webviewRef.current.injectJavaScript(`
+            const videos = document.querySelectorAll('video');
+            videos.forEach(v => {
+              if(v.srcObject){
+                v.srcObject.getTracks().forEach(track => track.stop());
+              }
+            });
+            true;
+          `);
+        }
         setShowWebView(false);
       };
     }, [])
