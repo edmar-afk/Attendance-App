@@ -165,7 +165,7 @@ const AttendanceList = () => {
             lon
           );
 
-          const radius = 0.15; // 20 meters
+          const radius = 0.6; // 20 meters
           const accuracyKm = (userLocation.accuracy || 10) / 1000;
 
           const isNearby = distance <= Math.max(radius, accuracyKm);
@@ -270,8 +270,8 @@ const AttendanceList = () => {
                         }`}
                       >
                         {item.isNearby
-                          ? "Within classroom ✅"
-                          : "Outside classroom ❌"}
+                          ? "You're Within classroom ✅"
+                          : "You're Outside classroom ❌"}
                       </Text>
                     )}
 
@@ -301,7 +301,7 @@ const AttendanceList = () => {
           ) : (
             <Text className="text-gray-500 mt-10 text-center">
               {locationEnabled
-                ? "No Active Attendance within 20m radius."
+                ? "No Active Attendance within 70m radius."
                 : "No attendance records found."}
             </Text>
           )}
