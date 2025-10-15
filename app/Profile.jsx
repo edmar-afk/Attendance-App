@@ -7,12 +7,15 @@ import {
   Modal,
   Pressable,
   Animated,
+  ScrollView,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import Header from "../components/profile/Header";
 import fingerprintImg from "../assets/image/fingerprint.png";
 import faceImg from "../assets/image/face-recognition.png";
+import profileImg from "../assets/image/profile.png";
+import eventsImg from "../assets/image/events.png";
 import GenerateFingerprint from "../components/GenerateFingerprint";
 
 const Profile = () => {
@@ -48,11 +51,13 @@ const Profile = () => {
   }, []);
 
   return (
-    <View>
+    <View className="flex-1 bg-gray-100">
       <Header />
-      <View className="px-6">
+      <ScrollView
+        contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 40 }}
+      >
         <TouchableOpacity
-          className="bg-white p-3 rounded-xl shadow-xl"
+          className="bg-white p-3 rounded-xl shadow-xl mt-4"
           onPress={() => router.push("/face-register/FaceAttendance")}
         >
           <View className="flex flex-row items-start">
@@ -78,7 +83,10 @@ const Profile = () => {
         >
           <View className="flex flex-row items-start">
             <View className="flex flex-col items-center">
-              <Image source={fingerprintImg} className="w-28 h-28 self-center" />
+              <Image
+                source={fingerprintImg}
+                className="w-28 h-28 self-center"
+              />
               <Text className="font-font text-blue-600 text-xs">
                 Tap to View
               </Text>
@@ -94,7 +102,49 @@ const Profile = () => {
             </View>
           </View>
         </TouchableOpacity>
-      </View>
+
+        <TouchableOpacity
+          className="bg-white p-3 rounded-xl shadow-xl mt-8"
+          onPress={() => router.push("/events/Events")}
+        >
+          <View className="flex flex-row items-start">
+            <View className="flex flex-col items-center">
+              <Image source={eventsImg} className="w-28 h-28 self-center" />
+              <Text className="font-font text-blue-600 text-xs">
+                Tap to View
+              </Text>
+            </View>
+            <View className="flex-1 flex flex-col ml-2 mt-4">
+              <Text className="font-semibold mb-1">Upcoming Events</Text>
+              <Text className="leading-6">
+                Stay updated with your scheduled activities, meetings, and
+                important deadlines at the School of JHCSC.
+              </Text>
+            </View>
+          </View>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          className="bg-white p-3 rounded-xl shadow-xl mt-8"
+          onPress={() => router.push("/profile/ProfileSettings")}
+        >
+          <View className="flex flex-row items-start">
+            <View className="flex flex-col items-center">
+              <Image source={profileImg} className="w-28 h-28 self-center" />
+              <Text className="font-font text-blue-600 text-xs">
+                Tap to View
+              </Text>
+            </View>
+            <View className="flex-1 flex flex-col ml-2 mt-4">
+              <Text className="font-semibold mb-1">Profile Settings</Text>
+              <Text className="leading-6">
+                Update your personal information, change your password, and
+                manage your account preferences here.
+              </Text>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </ScrollView>
 
       <Modal
         transparent
@@ -116,7 +166,7 @@ const Profile = () => {
               Fingerprint Registration
             </Text>
             <View className="text-center mb-5">
-             <GenerateFingerprint/>
+              <GenerateFingerprint />
             </View>
             <TouchableOpacity
               className="bg-blue-600 p-3 rounded-xl"
