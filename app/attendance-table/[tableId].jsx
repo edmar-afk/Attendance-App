@@ -153,22 +153,25 @@ const AttendanceTable = () => {
         </TouchableOpacity>
       </View>
 
+      <View className="mb-2 mx-2">
+        <Text>Filters: </Text>
+      </View>
       <ScrollView horizontal>
-        <View className="min-w-full">
-          <View className="bg-white border-b border-gray-200">
-            <View className="flex-row">
-              <Text className="text-sm font-medium text-gray-900 px-6 py-4 flex-1">
-                Student Name
-              </Text>
-              <Text className="text-sm font-medium text-gray-900 px-6 py-4 flex-1">
-                Time In
-              </Text>
-              <Text className="text-sm font-medium text-gray-900 px-6 py-4 flex-1">
-                Time Out
-              </Text>
-            </View>
+        <View>
+          {/* Header */}
+          <View className="bg-white border-b border-gray-200 flex-row">
+            <Text className="text-sm font-medium text-gray-900 px-6 py-4 w-40">
+              Student Name
+            </Text>
+            <Text className="text-sm font-medium text-gray-900 px-6 py-4 w-32">
+              Time In
+            </Text>
+            <Text className="text-sm font-medium text-gray-900 px-6 py-4 w-32">
+              Time Out
+            </Text>
           </View>
 
+          {/* Body */}
           {records.length === 0 ? (
             <View className="py-10">
               <Text className="text-center text-gray-500 text-base">
@@ -183,21 +186,35 @@ const AttendanceTable = () => {
                   index % 2 === 0 ? "bg-gray-100" : "bg-white"
                 }`}
               >
-                <Text className="text-sm text-gray-900 font-light px-6 py-4 flex-1">
+                <Text className="text-sm text-gray-900 font-light px-6 py-4 w-40">
                   {item.user_first_name || "N/A"}
                 </Text>
-                <Text className="text-sm text-gray-900 font-light px-6 py-4 flex-1">
-                  {item.time_in || "-"}
+                <Text
+                  className={`text-sm px-6 py-4 w-32 ${
+                    item.time_in
+                      ? "text-gray-900 font-light"
+                      : "text-red-500 font-bold"
+                  }`}
+                >
+                  {item.time_in || "Absent"}
                 </Text>
-                <Text className="text-sm text-gray-900 font-light px-6 py-4 flex-1">
-                  {item.time_out || "-"}
+
+                <Text
+                  className={`text-sm px-6 py-4 w-32 ${
+                    item.time_out
+                      ? "text-gray-900 font-light"
+                      : "text-red-500 font-bold"
+                  }`}
+                >
+                  {item.time_out || "Absent"}
                 </Text>
               </View>
             ))
           )}
         </View>
       </ScrollView>
-      {userData?.id === 4 && (
+
+      {userData.is_superuser === true && (
         <GenerateReport attendanceId={tableId} eventName={event_name} />
       )}
     </View>

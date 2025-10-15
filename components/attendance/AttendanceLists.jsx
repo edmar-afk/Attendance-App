@@ -279,7 +279,7 @@ const AttendanceList = () => {
                       <Text className="text-sm text-green-600 font-semibold">
                         {formatted}
                       </Text>
-                      {userData?.first_name === "Admin" && (
+                      {userData?.is_superuser === true && (
                         <>
                           <TimeInButton
                             attendanceId={item.id}

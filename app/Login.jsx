@@ -48,6 +48,7 @@ export default function Login() {
         JSON.stringify({
           id: res.data.id,
           first_name: res.data.first_name,
+          is_superuser: res.data.is_superuser,
         })
       );
 

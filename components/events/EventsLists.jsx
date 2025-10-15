@@ -1,44 +1,108 @@
-import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import React, { useState } from "react";
+import { View, Text, TouchableOpacity, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import EditEvent from "./EditEvent";
+import api from "../../assets/api";
 
-const EventsLists = () => {
+const EventsLists = ({
+  eventId,
+  eventName,
+  description,
+  dateStarted,
+  onEventDeleted,
+}) => {
+  const [editModalVisible, setEditModalVisible] = useState(false);
+
+  const openEditModal = () => setEditModalVisible(true);
+  const closeEditModal = () => setEditModalVisible(false);
+
+  const handleDelete = () => {
+    Alert.alert("Delete Event", "Are you sure you want to delete this event?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await api.delete(`/api/events/delete/${eventId}/`);
+            Alert.alert("Success", "Event deleted successfully.");
+            if (onEventDeleted) onEventDeleted(eventId);
+          } catch (error) {
+            Alert.alert("Error", "Failed to delete the event.");
+            console.error(error);
+          }
+        },
+      },
+    ]);
+  };
+
   return (
-    <View className="p-4">
-      <View className="w-full mx-auto bg-green-600 rounded-lg shadow-lg">
+    <View className="p-2">
+      <View className="w-full mx-auto bg-green-800 rounded-lg shadow-lg">
         <View className="px-6 py-5">
           <View className="flex-row items-start">
-            <Ionicons name="albums-outline" size={30} color="#C7D2FE" className="mr-5" />
-            <View className="flex-1">
-              <View className="flex-col justify-start mb-3">
-                <Text className="text-2xl font-extrabold text-gray-50 truncate mb-1 sm:mb-0">
-                  Simple Design Tips
+            <Ionicons name="bookmark-sharp" size={30} color="white" />
+
+            <View className="flex-1 ml-4">
+              <Text className="text-2xl font-extrabold text-gray-50 truncate mb-2">
+                {eventName}
+              </Text>
+
+              <View className="flex-row items-center space-x-3 mb-2">
+                <Ionicons name="calendar" size={16} color="white" />
+                <Text className="text-green-50 text-sm">
+                  Event Started on{" "}
+                  {new Date(dateStarted).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })}
                 </Text>
-                <View className="flex-row items-center space-x-3">
-                  <TouchableOpacity className="flex-row items-center">
-                    <Ionicons name="heart-outline" size={16} color="#D1D5DB" className="mr-2" />
-                    <Text className="text-green-100 text-sm">498</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity className="flex-row items-center">
-                    <Ionicons name="chatbubble-outline" size={16} color="#D1D5DB" className="mr-2" />
-                    <Text className="text-green-100 text-sm">64</Text>
-                  </TouchableOpacity>
-                </View>
               </View>
-              <View className="flex-row items-end justify-between">
-                <View className="max-w-md">
-                  <Text className="text-green-100 mb-2">
-                    Lorem ipsum dolor sit amet, consecte adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore.
+
+              <Text className="text-green-100 mb-2">{description}</Text>
+
+              <Text className="text-white text-xs italic mb-2">
+                Be there on time to avoid fines
+              </Text>
+
+              <View className="flex-row space-x-4">
+                <View className="items-center">
+                  <TouchableOpacity
+                    className="w-10 h-10 rounded-full bg-green-500 justify-center items-center"
+                    onPress={openEditModal}
+                  >
+                    <Ionicons name="create-outline" size={20} color="white" />
+                  </TouchableOpacity>
+                  <Text className="text-xs font-bold text-white mt-1">
+                    Edit
                   </Text>
                 </View>
-                <TouchableOpacity className="w-10 h-10 rounded-full bg-gradient-to-b from-green-50 to-green-100 justify-center items-center ml-2">
-                  <Text className="font-bold">→</Text>
-                </TouchableOpacity>
+
+                <View className="items-center">
+                  <TouchableOpacity
+                    className="w-10 h-10 rounded-full bg-red-500 justify-center items-center"
+                    onPress={handleDelete}
+                  >
+                    <Ionicons name="trash-outline" size={20} color="#FCA5A5" />
+                  </TouchableOpacity>
+                  <Text className="text-xs font-bold text-white mt-1">
+                    Delete
+                  </Text>
+                </View>
               </View>
             </View>
           </View>
         </View>
       </View>
+
+      {editModalVisible && (
+        <EditEvent
+          eventId={eventId}
+          modalVisible={editModalVisible}
+          setModalVisible={setEditModalVisible}
+        />
+      )}
     </View>
   );
 };

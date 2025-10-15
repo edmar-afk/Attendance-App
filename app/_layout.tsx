@@ -1,7 +1,7 @@
 import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Text, View } from "react-native";
-
+import Logout from "./Logout";
 export default function Layout() {
   return (
     <Tabs
@@ -63,6 +63,18 @@ export default function Layout() {
         }}
       />
       <Tabs.Screen
+        name="students"
+        options={{
+          title: "Students",
+          tabBarIcon: ({ color, size }) => (
+            <View className="items-center">
+              <Ionicons name="person" size={size} color={color} />
+              <Text className="text-[10px] -mt-4"></Text>
+            </View>
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="Profile"
         options={{
           title: "Profile",
@@ -72,6 +84,18 @@ export default function Layout() {
               <Text className="text-[10px] -mt-4"></Text>
             </View>
           ),
+        }}
+      />
+      <Tabs.Screen
+        name="Logout"
+        options={{
+          title: "Logout",
+          tabBarIcon: ({ color, size }) => (
+            <View className="items-center">
+              <Ionicons name="exit" size={size} color="red" />
+            </View>
+          ),
+          tabBarStyle: { display: "none" }, // hide the tab bar
         }}
       />
 
@@ -97,14 +121,14 @@ export default function Layout() {
           tabBarStyle: { display: "none" }, // ensures no bar shows when visited
         }}
       />
-       <Tabs.Screen
+      <Tabs.Screen
         name="profile"
         options={{
           href: null, // completely hides it from the navbar
           tabBarStyle: { display: "none" }, // ensures no bar shows when visited
         }}
       />
-       <Tabs.Screen
+      <Tabs.Screen
         name="events"
         options={{
           href: null, // completely hides it from the navbar

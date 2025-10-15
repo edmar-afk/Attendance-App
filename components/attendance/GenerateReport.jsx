@@ -12,7 +12,7 @@ import {
 import { Feather } from "@expo/vector-icons";
 import api from "../../assets/api";
 
-const GenerateReport = ({ attendanceId, evenName }) => {
+const GenerateReport = ({ attendanceId, eventName }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [downloadReady, setDownloadReady] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -81,7 +81,7 @@ const GenerateReport = ({ attendanceId, evenName }) => {
             onPress={() => {}}
           >
             <Text className="text-lg font-bold mb-4">
-              Generate Attendance Report for {evenName}
+              Generate Attendance Report for {eventName}
             </Text>
 
             {!downloadReady ? (

@@ -28,7 +28,7 @@ const AddEvent = () => {
       return;
     }
     try {
-      await api.post("/events/", {
+      await api.post("/api/events/", {
         event_name: eventName,
         description,
         date_started: dateStarted,
@@ -65,8 +65,9 @@ const AddEvent = () => {
   const onDateChange = (event, selectedDate) => {
     setShowDatePicker(Platform.OS === "ios");
     if (selectedDate) {
-      const date = selectedDate.toISOString().split("T")[0];
-      setDateStarted(date);
+      const options = { year: "numeric", month: "short", day: "numeric" };
+      const formattedDate = selectedDate.toLocaleDateString("en-US", options);
+      setDateStarted(formattedDate);
     }
   };
 
@@ -105,7 +106,9 @@ const AddEvent = () => {
                   className="border border-gray-300 rounded p-2 mb-3"
                   onPress={() => setShowDatePicker(true)}
                 >
-                  <Text className={dateStarted ? "text-black" : "text-gray-400"}>
+                  <Text
+                    className={dateStarted ? "text-black" : "text-gray-400"}
+                  >
                     {dateStarted || "Select Date"}
                   </Text>
                 </TouchableOpacity>
