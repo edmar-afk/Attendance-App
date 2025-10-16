@@ -26,6 +26,7 @@ const AttendanceList = () => {
   const [locationEnabled, setLocationEnabled] = useState(false);
 
   const [userData, setUserData] = useState(null);
+  console.log("UserData:", userData?.is_superuser);
 
   useEffect(() => {
     let subscription;
@@ -279,7 +280,7 @@ const AttendanceList = () => {
                       <Text className="text-sm text-green-600 font-semibold">
                         {formatted}
                       </Text>
-                      {userData?.is_superuser === true && (
+                      {userData?.is_superuser == true && (
                         <>
                           <TimeInButton
                             attendanceId={item.id}

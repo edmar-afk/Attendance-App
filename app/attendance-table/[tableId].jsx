@@ -8,8 +8,10 @@ import {
   ActivityIndicator,
   Alert,
   TouchableOpacity,
+  TextInput,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { Picker } from "@react-native-picker/picker";
 import api from "../../assets/api";
 import { useLocalSearchParams } from "expo-router";
 import TimeInAttendanceModal from "../../components/attendance/TimeInAttendanceModal";
@@ -30,6 +32,11 @@ const AttendanceTable = () => {
   });
   const [userData, setUserData] = useState(null);
 
+  // Filters
+  const [searchText, setSearchText] = useState("");
+  const [selectedCourse, setSelectedCourse] = useState("");
+  const [selectedYear, setSelectedYear] = useState("");
+
   useEffect(() => {
     const getUserData = async () => {
       const storedData = await AsyncStorage.getItem("userData");
@@ -47,36 +54,38 @@ const AttendanceTable = () => {
   useEffect(() => {
     fetchAttendanceRecords();
     fetchAttendanceStatus();
-  }, [tableId]);
+  }, [tableId, selectedCourse, selectedYear]);
 
   useEffect(() => {
     if (!time_limit) return;
-
     const interval = setInterval(() => {
       const now = new Date().getTime();
       const limit = new Date(time_limit).getTime();
       const diff = Math.max(0, limit - now);
-
       if (diff <= 0) {
         setRemaining("Time expired");
         clearInterval(interval);
         return;
       }
-
       const minutes = Math.floor(diff / 60000);
       const seconds = Math.floor((diff % 60000) / 1000);
       setRemaining(
         `${minutes}:${seconds.toString().padStart(2, "0")} mins left`
       );
     }, 1000);
-
     return () => clearInterval(interval);
   }, [time_limit]);
 
   const fetchAttendanceRecords = async () => {
     try {
       if (!refreshing) setLoading(true);
-      const response = await api.get(`/api/attendance/${tableId}/records/`);
+      const response = await api.get(`/api/attendance-filter/${tableId}/records/`, {
+        params: {
+          year_lvl: selectedYear || undefined,
+          course: selectedCourse || undefined,
+          search: searchText || undefined,
+        },
+      });
       setRecords(response.data);
     } catch (error) {
       Alert.alert("Error", "Failed to load attendance records.");
@@ -102,6 +111,11 @@ const AttendanceTable = () => {
     setRefreshing(true);
     fetchAttendanceRecords();
     fetchAttendanceStatus();
+  };
+
+  const handleSearchChange = (text) => {
+    setSearchText(text);
+    fetchAttendanceRecords();
   };
 
   if (loading) {
@@ -153,9 +167,54 @@ const AttendanceTable = () => {
         </TouchableOpacity>
       </View>
 
-      <View className="mb-2 mx-2">
-        <Text>Filters: </Text>
+      {/* Filters Section */}
+      <View className="mb-4 mx-2">
+        <Text className="mb-1 font-semibold text-gray-700">Filters</Text>
+
+        {/* Search Text
+        <TextInput
+          placeholder="Search student..."
+          value={searchText}
+          onChangeText={handleSearchChange}
+          className="border border-gray-300 rounded-lg px-3 py-2 mb-2 bg-white"
+        /> */}
+
+        {/* Dropdowns */}
+        <View className="flex flex-row justify-between">
+          <View className="flex-1 mr-2">
+            <Text className="text-gray-700 mb-1">Course</Text>
+            <View className="border border-gray-300 rounded-lg bg-white">
+              <Picker
+                selectedValue={selectedCourse}
+                onValueChange={(value) => setSelectedCourse(value)}
+              >
+                <Picker.Item label="All" value="" />
+                <Picker.Item label="BSIT" value="BSIT" />
+                <Picker.Item label="BSCS" value="BSCS" />
+                <Picker.Item label="BSECE" value="BSECE" />
+                <Picker.Item label="BSCE" value="BSCE" />
+              </Picker>
+            </View>
+          </View>
+
+          <View className="flex-1">
+            <Text className="text-gray-700 mb-1">Year Level</Text>
+            <View className="border border-gray-300 rounded-lg bg-white">
+              <Picker
+                selectedValue={selectedYear}
+                onValueChange={(value) => setSelectedYear(value)}
+              >
+                <Picker.Item label="All" value="" />
+                <Picker.Item label="1st Year" value="1st Year" />
+                <Picker.Item label="2nd Year" value="2nd Year" />
+                <Picker.Item label="3rd Year" value="3rd Year" />
+                <Picker.Item label="4th Year" value="4th Year" />
+              </Picker>
+            </View>
+          </View>
+        </View>
       </View>
+
       <ScrollView horizontal>
         <View>
           {/* Header */}
@@ -175,7 +234,7 @@ const AttendanceTable = () => {
           {records.length === 0 ? (
             <View className="py-10">
               <Text className="text-center text-gray-500 text-base">
-                No student record found. Be the first one to log in!
+                No student record found.
               </Text>
             </View>
           ) : (
@@ -198,7 +257,6 @@ const AttendanceTable = () => {
                 >
                   {item.time_in || "Absent"}
                 </Text>
-
                 <Text
                   className={`text-sm px-6 py-4 w-32 ${
                     item.time_out
@@ -214,7 +272,7 @@ const AttendanceTable = () => {
         </View>
       </ScrollView>
 
-      {userData.is_superuser === true && (
+      {userData?.is_superuser === true && (
         <GenerateReport attendanceId={tableId} eventName={event_name} />
       )}
     </View>

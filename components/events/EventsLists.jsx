@@ -48,9 +48,9 @@ const EventsLists = ({
                 {eventName}
               </Text>
 
-              <View className="flex-row items-center space-x-3 mb-2">
+              <View className="flex-row items-center space-x-3 mb-4">
                 <Ionicons name="calendar" size={16} color="white" />
-                <Text className="text-green-50 text-sm">
+                <Text className="text-green-50 text-sm ml-2">
                   Event Started on{" "}
                   {new Date(dateStarted).toLocaleDateString("en-US", {
                     month: "short",
@@ -62,11 +62,11 @@ const EventsLists = ({
 
               <Text className="text-green-100 mb-2">{description}</Text>
 
-              <Text className="text-white text-xs italic mb-2">
+              <Text className="text-white text-xs italic mb-2 absolute bottom-5">
                 Be there on time to avoid fines
               </Text>
 
-              <View className="flex-row space-x-4">
+              <View className="flex-row gap-3 justify-end space-x-4">
                 <View className="items-center">
                   <TouchableOpacity
                     className="w-10 h-10 rounded-full bg-green-500 justify-center items-center"

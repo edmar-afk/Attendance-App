@@ -12,7 +12,7 @@ import {
 import { Feather } from "@expo/vector-icons";
 import api from "../../assets/api";
 
-const GenerateReport = ({ attendanceId, eventName }) => {
+const GenerateReport = ({ attendanceId, eventName, course, year_lvl }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [downloadReady, setDownloadReady] = useState(false);
   const [loading, setLoading] = useState(false);

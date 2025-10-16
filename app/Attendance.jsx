@@ -16,7 +16,7 @@ const Attendance = () => {
         const userDataString = await AsyncStorage.getItem("userData");
         if (userDataString) {
           const userData = JSON.parse(userDataString);
-          if (userData.is_superuser === true) {
+          if (userData.is_superuser == true) {
             setIsAdmin(true);
           }
         }

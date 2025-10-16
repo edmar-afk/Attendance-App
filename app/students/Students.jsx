@@ -54,6 +54,8 @@ const Students = () => {
           <Text className="ml-2 text-gray-700">Refresh</Text>
         </TouchableOpacity>
       </View>
+
+      <View><Text>Filter year and course</Text></View>
       {students.map((student) => (
         <StudentsLists
           key={student.user.id}
