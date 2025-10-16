@@ -21,7 +21,7 @@ const ProfileSettings = () => {
     first_name: "",
     year_lvl: "",
     course: "",
-    schoolId: "",
+    username: "",
     new_password: "",
   });
 
@@ -36,7 +36,7 @@ const ProfileSettings = () => {
         const res = await api.get(`/api/profileUpdate/${user.id}/`);
         setProfile({
           first_name: res.data.user.first_name || "",
-          schoolId: res.data.schoolId || res.data.user.username || "",
+          username: res.data.username || res.data.user.username || "",
           year_lvl: res.data.year_lvl || "",
           course: res.data.course || "",
           new_password: "",
@@ -57,11 +57,11 @@ const ProfileSettings = () => {
       await api.put(`/api/profileUpdate/${userId}/`, {
         user: {
           first_name: profile.first_name,
-          username: profile.schoolId,
+          username: profile.username,
         },
         year_lvl: profile.year_lvl,
         course: profile.course,
-        schoolId: profile.schoolId,
+        username: profile.username,
         new_password: profile.new_password || undefined,
       });
       Alert.alert("Success", "Profile updated successfully!");
@@ -110,8 +110,8 @@ const ProfileSettings = () => {
 
       <Text className="text-gray-700 mb-1">School ID</Text>
       <TextInput
-        value={profile.schoolId}
-        onChangeText={(text) => setProfile({ ...profile, schoolId: text })}
+        value={profile.username}
+        onChangeText={(text) => setProfile({ ...profile, username: text })}
         className="border border-gray-300 rounded-lg p-3 mb-4"
       />
 
@@ -136,9 +136,14 @@ const ProfileSettings = () => {
           onValueChange={(value) => setProfile({ ...profile, course: value })}
         >
           <Picker.Item label={profile.course} value={profile.course} />
+          <Picker.Item label="SET DEPT." value="SET DEPT." />
+          <Picker.Item label="BIT" value="BIT" />
+          <Picker.Item label="SCS DEPT." value="SCS DEPT." />
           <Picker.Item label="BSIT" value="BSIT" />
-          <Picker.Item label="BSCS" value="BSCS" />
-          <Picker.Item label="BSIS" value="BSIS" />
+          <Picker.Item label="STE DEPT." value="STE DEPT." />
+          <Picker.Item label="BTVTED FSM" value="BTVTED FSM" />
+          <Picker.Item label="BTLED HE" value="BTLED HE" />
+          <Picker.Item label="BTLED AP" value="BTLED AP" />
         </Picker>
       </View>
 

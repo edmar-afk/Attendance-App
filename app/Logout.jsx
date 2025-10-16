@@ -1,6 +1,7 @@
 import React, { useRef } from "react";
 import { View, Animated } from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function Logout() {
   const router = useRouter();
@@ -25,9 +26,24 @@ export default function Logout() {
         }),
       ]).start();
 
-      const timeout = setTimeout(() => {
-        router.replace("/Login");
-      }, 3000);
+      const logout = async () => {
+        try {
+          await AsyncStorage.clear();
+          const keys = await AsyncStorage.getAllKeys();
+          console.log("Remaining keys after clear:", keys); // should be []
+
+          if (keys.length === 0) {
+            router.replace("/Login");
+          } else {
+            console.log("AsyncStorage not fully cleared yet, retrying...");
+            setTimeout(logout, 500);
+          }
+        } catch (e) {
+          console.log("Error clearing AsyncStorage:", e);
+        }
+      };
+
+      const timeout = setTimeout(logout, 3000);
 
       return () => clearTimeout(timeout);
     }, [])

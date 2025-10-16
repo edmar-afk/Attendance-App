@@ -38,19 +38,11 @@ export default function Login() {
 
       Alert.alert("Success", "Login successful!");
 
-      // Save tokens
+      await AsyncStorage.clear();
+
       await AsyncStorage.setItem("access", res.data.access);
       await AsyncStorage.setItem("refresh", res.data.refresh);
-
-      // Save only id and first_name
-      await AsyncStorage.setItem(
-        "userData",
-        JSON.stringify({
-          id: res.data.id,
-          first_name: res.data.first_name,
-          is_superuser: res.data.is_superuser,
-        })
-      );
+      await AsyncStorage.setItem("userData", JSON.stringify(res.data));
 
       router.push("/Profile");
     } catch (err) {

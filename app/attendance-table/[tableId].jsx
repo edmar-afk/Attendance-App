@@ -30,21 +30,39 @@ const AttendanceTable = () => {
     is_time_in: false,
     is_time_out: false,
   });
-  const [userData, setUserData] = useState(null);
-
+  const [userSuperuser, setUserSuperuser] = useState(null);
+  console.log("from generate: ", userSuperuser);
   // Filters
   const [searchText, setSearchText] = useState("");
   const [selectedCourse, setSelectedCourse] = useState("");
   const [selectedYear, setSelectedYear] = useState("");
 
-  useEffect(() => {
-    const getUserData = async () => {
-      const storedData = await AsyncStorage.getItem("userData");
-      if (storedData) setUserData(JSON.parse(storedData));
-    };
-    getUserData();
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      let intervalId;
 
+      const loadUserSuperuser = async () => {
+        try {
+          const storedData = await AsyncStorage.getItem("userSuperuser");
+          if (storedData) {
+            const parsed = JSON.parse(storedData);
+            setUserSuperuser(parsed);
+            console.log("Updated userSuperuser:", parsed);
+          } else {
+            setUserSuperuser(null);
+            console.log("No userSuperuser found");
+          }
+        } catch (error) {
+          console.error("Error loading userSuperuser:", error);
+        }
+      };
+
+      loadUserSuperuser();
+      intervalId = setInterval(loadUserSuperuser, 3000);
+
+      return () => clearInterval(intervalId);
+    }, [])
+  );
   useFocusEffect(
     useCallback(() => {
       fetchAttendanceStatus();
@@ -79,13 +97,16 @@ const AttendanceTable = () => {
   const fetchAttendanceRecords = async () => {
     try {
       if (!refreshing) setLoading(true);
-      const response = await api.get(`/api/attendance-filter/${tableId}/records/`, {
-        params: {
-          year_lvl: selectedYear || undefined,
-          course: selectedCourse || undefined,
-          search: searchText || undefined,
-        },
-      });
+      const response = await api.get(
+        `/api/attendance-filter/${tableId}/records/`,
+        {
+          params: {
+            year_lvl: selectedYear || undefined,
+            course: selectedCourse || undefined,
+            search: searchText || undefined,
+          },
+        }
+      );
       setRecords(response.data);
     } catch (error) {
       Alert.alert("Error", "Failed to load attendance records.");
@@ -272,8 +293,13 @@ const AttendanceTable = () => {
         </View>
       </ScrollView>
 
-      {userData?.is_superuser === true && (
-        <GenerateReport attendanceId={tableId} eventName={event_name} />
+      {userSuperuser && (
+        <GenerateReport
+          attendanceId={tableId}
+          eventName={event_name}
+          course={selectedCourse || "All"}
+          year_lvl={selectedYear || "All"}
+        />
       )}
     </View>
   );

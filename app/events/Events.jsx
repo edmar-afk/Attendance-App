@@ -1,6 +1,8 @@
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect } from "expo-router";
 import EventsLists from "../../components/events/EventsLists";
 import AddEvent from "../../components/events/AddEvent";
 import api from "../../assets/api";
@@ -8,6 +10,7 @@ import api from "../../assets/api";
 const Events = () => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [isSuperuser, setIsSuperuser] = useState(false);
 
   const fetchEvents = async () => {
     try {
@@ -21,9 +24,42 @@ const Events = () => {
     }
   };
 
-  useEffect(() => {
-    fetchEvents();
-  }, []);
+  const loadSuperuserStatus = async () => {
+    try {
+      const storedSuperuser = await AsyncStorage.getItem("userSuperuser");
+      if (storedSuperuser) {
+        const parsed = JSON.parse(storedSuperuser);
+        setIsSuperuser(parsed);
+        console.log("Reloaded userSuperuser:", parsed);
+      } else {
+        setIsSuperuser(false);
+        console.log("No userSuperuser found — defaulting to false");
+      }
+    } catch (error) {
+      console.error("Error loading userSuperuser:", error);
+    }
+  };
+
+  useFocusEffect(
+    React.useCallback(() => {
+      let intervalId;
+
+      const handleFocus = async () => {
+        await fetchEvents();
+        await loadSuperuserStatus();
+      };
+
+      handleFocus();
+      intervalId = setInterval(loadSuperuserStatus, 2000);
+
+      return () => {
+        if (intervalId) {
+          clearInterval(intervalId);
+          console.log("Interval cleared for Events");
+        }
+      };
+    }, [])
+  );
 
   return (
     <View className="flex-1 bg-white">
@@ -39,12 +75,16 @@ const Events = () => {
           </Text>
         </View>
 
-        <TouchableOpacity onPress={fetchEvents} className="mt-8 flex flex-row items-center">
+        <TouchableOpacity
+          onPress={fetchEvents}
+          className="mt-8 flex flex-row items-center"
+        >
           <Ionicons
             name={loading ? "refresh-circle-outline" : "refresh-outline"}
             size={20}
             color="black"
-          /> <Text>Refresh</Text>
+          />
+          <Text>Refresh</Text>
         </TouchableOpacity>
       </View>
 
@@ -62,13 +102,15 @@ const Events = () => {
                 description={event.description}
                 dateStarted={event.date_started}
                 eventId={event.id}
+                onEventDeleted={fetchEvents}
+                isSuperuser={isSuperuser}
               />
             ))
           )}
         </View>
       </ScrollView>
 
-      <AddEvent refreshEvents={fetchEvents} />
+      {isSuperuser && <AddEvent refreshEvents={fetchEvents} />}
     </View>
   );
 };

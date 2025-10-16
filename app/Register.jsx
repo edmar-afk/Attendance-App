@@ -116,10 +116,14 @@ export default function Register() {
               style={{ color: "white" }}
             >
               <Picker.Item label="Select Course" value="" />
+              <Picker.Item label="SET DEPT." value="SET DEPT." />
+              <Picker.Item label="BIT" value="BIT" />
+              <Picker.Item label="SCS DEPT." value="SCS DEPT." />
               <Picker.Item label="BSIT" value="BSIT" />
-              <Picker.Item label="BSCS" value="BSCS" />
-              <Picker.Item label="BSECE" value="BSECE" />
-              <Picker.Item label="BSCE" value="BSCE" />
+              <Picker.Item label="STE DEPT." value="STE DEPT." />
+              <Picker.Item label="BTVTED FSM" value="BTVTED FSM" />
+              <Picker.Item label="BTLED HE" value="BTLED HE" />
+              <Picker.Item label="BTLED AP" value="BTLED AP" />
             </Picker>
           </View>
 

@@ -78,6 +78,7 @@ export default function StudentsLists({
     }
   };
 
+  
   return (
     <>
       <View className="overflow-hidden mb-2 bg-white rounded-lg shadow-md">
@@ -95,7 +96,22 @@ export default function StudentsLists({
                 <TouchableOpacity onPress={openModal}>
                   <Ionicons name="create-outline" size={20} color="#4B5563" />
                 </TouchableOpacity>
-                <TouchableOpacity onPress={onDeletePress}>
+                <TouchableOpacity
+                  onPress={() =>
+                    Alert.alert(
+                      "Confirm Deletion",
+                      `Are you sure you want to delete ${formData.first_name}?`,
+                      [
+                        { text: "Cancel", style: "cancel" },
+                        {
+                          text: "Delete",
+                          style: "destructive",
+                          onPress: onDeletePress,
+                        },
+                      ]
+                    )
+                  }
+                >
                   <Ionicons name="trash-outline" size={20} color="#EF4444" />
                 </TouchableOpacity>
               </View>
@@ -151,7 +167,10 @@ export default function StudentsLists({
                     }
                     className="p-2"
                   >
-                    <Picker.Item label={formData.year_lvl} value={formData.year_lvl} />
+                    <Picker.Item
+                      label={formData.year_lvl}
+                      value={formData.year_lvl}
+                    />
                     <Picker.Item label="1st Year" value="1st Year" />
                     <Picker.Item label="2nd Year" value="2nd Year" />
                     <Picker.Item label="3rd Year" value="3rd Year" />
@@ -168,11 +187,18 @@ export default function StudentsLists({
                     }
                     className="p-2"
                   >
-                    <Picker.Item label={formData.course} value={formData.course} />
-                    <Picker.Item label="BSCS" value="BSCS" />
+                    <Picker.Item
+                      label={formData.course}
+                      value={formData.course}
+                    />
+                    <Picker.Item label="SET DEPT." value="SET DEPT." />
+                    <Picker.Item label="BIT" value="BIT" />
+                    <Picker.Item label="SCS DEPT." value="SCS DEPT." />
                     <Picker.Item label="BSIT" value="BSIT" />
-                    <Picker.Item label="BSA" value="BSA" />
-                    <Picker.Item label="BSBA" value="BSBA" />
+                    <Picker.Item label="STE DEPT." value="STE DEPT." />
+                    <Picker.Item label="BTVTED FSM" value="BTVTED FSM" />
+                    <Picker.Item label="BTLED HE" value="BTLED HE" />
+                    <Picker.Item label="BTLED AP" value="BTLED AP" />
                   </Picker>
                 </View>
 

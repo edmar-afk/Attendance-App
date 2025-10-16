@@ -18,14 +18,34 @@ const GenerateReport = ({ attendanceId, eventName, course, year_lvl }) => {
   const [loading, setLoading] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
+  const fadeIn = () => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 600,
+      useNativeDriver: true,
+    }).start(() => {
+      setTimeout(() => {
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 600,
+          useNativeDriver: true,
+        }).start();
+      }, 3000);
+    });
+  };
+
   const handleGenerate = async () => {
     try {
       setLoading(true);
+
+      const params = new URLSearchParams({
+        course: course || "All",
+        year_lvl: year_lvl || "All",
+      });
+
       const response = await api.get(
-        `/api/export-attendance/${attendanceId}/`,
-        {
-          responseType: "blob",
-        }
+        `/api/export-attendance/${attendanceId}/?${params.toString()}`,
+        { responseType: "blob" }
       );
 
       if (response.status === 200) {
@@ -44,24 +64,13 @@ const GenerateReport = ({ attendanceId, eventName, course, year_lvl }) => {
   };
 
   const handleDownload = () => {
-    const downloadUrl = `${api.defaults.baseURL}/api/export-attendance/${attendanceId}/`;
-    Linking.openURL(downloadUrl);
-  };
+    const params = new URLSearchParams({
+      course: course || "All",
+      year_lvl: year_lvl || "All",
+    });
 
-  const fadeIn = () => {
-    Animated.sequence([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 600,
-        useNativeDriver: true,
-      }),
-      Animated.delay(2500),
-      Animated.timing(fadeAnim, {
-        toValue: 0,
-        duration: 600,
-        useNativeDriver: true,
-      }),
-    ]).start();
+    const downloadUrl = `${api.defaults.baseURL}/api/export-attendance/${attendanceId}/?${params.toString()}`;
+    Linking.openURL(downloadUrl);
   };
 
   return (
@@ -83,7 +92,8 @@ const GenerateReport = ({ attendanceId, eventName, course, year_lvl }) => {
             <Text className="text-lg font-bold mb-4">
               Generate Attendance Report for {eventName}
             </Text>
-
+            <Text className='font-extrabold text-xl text-orange-700'>NOTE</Text>
+            <Text className='text-center mb-4 text-orange-500 font-bold'>This Generate an excel file contains students from {course} Course and {year_lvl} Levels</Text>
             {!downloadReady ? (
               <TouchableOpacity
                 disabled={loading}

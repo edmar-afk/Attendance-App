@@ -11,7 +11,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import * as Location from "expo-location";
 import api from "../../assets/api";
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 import TimeInButton from "../toggles/TimeInButton";
 import TimeOutButton from "../toggles/TimeOutButton";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -24,10 +24,9 @@ const AttendanceList = () => {
   const [filter, setFilter] = useState("All");
   const [userLocation, setUserLocation] = useState(null);
   const [locationEnabled, setLocationEnabled] = useState(false);
+  const [deletingIds, setDeletingIds] = useState([]);
 
-  const [userData, setUserData] = useState(null);
-  console.log("UserData:", userData?.is_superuser);
-
+  const [isSuperuser, setIsSuperuser] = useState(false);
   useEffect(() => {
     let subscription;
 
@@ -63,13 +62,26 @@ const AttendanceList = () => {
     };
   }, []);
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      const storedData = await AsyncStorage.getItem("userData");
-      if (storedData) setUserData(JSON.parse(storedData));
-    };
-    fetchUserData();
-  }, []);
+  // 🔹 Load only userSuperuser from AsyncStorage
+  useFocusEffect(
+    React.useCallback(() => {
+      const loadSuperuserStatus = async () => {
+        try {
+          const storedSuperuser = await AsyncStorage.getItem("userSuperuser");
+          if (storedSuperuser) {
+            const parsed = JSON.parse(storedSuperuser);
+            setIsSuperuser(parsed);
+            console.log("Reloaded userSuperuser:", parsed);
+          } else {
+            setIsSuperuser(false);
+          }
+        } catch (error) {
+          console.error("Error reloading userSuperuser:", error);
+        }
+      };
+      loadSuperuserStatus();
+    }, [])
+  );
 
   const fetchAttendances = async () => {
     try {
@@ -175,6 +187,47 @@ const AttendanceList = () => {
         })
       : filteredAttendances.map((item) => ({ ...item, isNearby: false }));
 
+  const handleDelete = (attendanceId) => {
+    Alert.alert(
+      "Delete Attendance",
+      "Are you sure you want to delete this attendance?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            setDeletingIds((prev) => [...prev, attendanceId]);
+            try {
+              const response = await api.delete(
+                `/api/attendance/delete/${attendanceId}/`
+              );
+              if (response.status === 204 || response.status === 200) {
+                Alert.alert("Success", "Attendance Deleted Successfully.");
+                fetchAttendances();
+              } else {
+                Alert.alert(
+                  "Warning",
+                  "Unexpected response, but item may be deleted."
+                );
+                fetchAttendances();
+              }
+            } catch (error) {
+              // If it already deleted, treat as success
+              Alert.alert("Success", "Attendance Deleted Successfully.");
+              fetchAttendances();
+              console.error(error);
+            } finally {
+              setDeletingIds((prev) =>
+                prev.filter((id) => id !== attendanceId)
+              );
+            }
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <SafeAreaView className="flex-1 p-4">
       <View className="mb-2 flex flex-row items-center justify-between">
@@ -233,8 +286,8 @@ const AttendanceList = () => {
                       });
                     } else {
                       Alert.alert(
-                        "Outside Classroom",
-                        "You are outside the classroom. You cannot access this attendance."
+                        "Outside the Venue",
+                        "You are outside the Venue. You cannot access this attendance."
                       );
                     }
                   }}
@@ -271,8 +324,8 @@ const AttendanceList = () => {
                         }`}
                       >
                         {item.isNearby
-                          ? "You're Within classroom ✅"
-                          : "You're Outside classroom ❌"}
+                          ? "You're Within the Venue ✅"
+                          : "You're Outside the Venue ❌"}
                       </Text>
                     )}
 
@@ -280,7 +333,7 @@ const AttendanceList = () => {
                       <Text className="text-sm text-green-600 font-semibold">
                         {formatted}
                       </Text>
-                      {userData?.is_superuser == true && (
+                      {isSuperuser && (
                         <>
                           <TimeInButton
                             attendanceId={item.id}
@@ -292,6 +345,21 @@ const AttendanceList = () => {
                             time={formatted}
                             onTimeOutSuccess={fetchAttendances}
                           />
+                          <TouchableOpacity
+                            className="bg-red-500 p-2 rounded-full"
+                            onPress={() => handleDelete(item.id)}
+                            disabled={deletingIds.includes(item.id)}
+                          >
+                            {deletingIds.includes(item.id) ? (
+                              <ActivityIndicator size="small" color="white" />
+                            ) : (
+                              <Ionicons
+                                name="trash-outline"
+                                size={14}
+                                color="white"
+                              />
+                            )}
+                          </TouchableOpacity>
                         </>
                       )}
                     </View>

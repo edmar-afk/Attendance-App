@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { View, Text, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFocusEffect } from "expo-router";
 import attendancebg from "../assets/image/attendancebg.png";
 import AttendanceLists from "../components/attendance/AttendanceLists";
 import AddAttendance from "../components/attendance/AddAttendance";
@@ -10,23 +11,26 @@ import AddAttendance from "../components/attendance/AddAttendance";
 const Attendance = () => {
   const [isAdmin, setIsAdmin] = useState(false);
 
-  useEffect(() => {
-    const checkUser = async () => {
-      try {
-        const userDataString = await AsyncStorage.getItem("userData");
-        if (userDataString) {
-          const userData = JSON.parse(userDataString);
-          if (userData.is_superuser == true) {
-            setIsAdmin(true);
+  useFocusEffect(
+    React.useCallback(() => {
+      const checkUserSuperuser = async () => {
+        try {
+          const storedSuperuser = await AsyncStorage.getItem("userSuperuser");
+          if (storedSuperuser) {
+            const parsed = JSON.parse(storedSuperuser);
+            setIsAdmin(parsed);
+            console.log("Reloaded userSuperuser:", parsed);
+          } else {
+            setIsAdmin(false);
+            console.log("No userSuperuser found — defaulting to false");
           }
+        } catch (error) {
+          console.error("Error fetching userSuperuser:", error);
         }
-      } catch (error) {
-        console.error("Error fetching userData:", error);
-      }
-    };
-
-    checkUser();
-  }, []);
+      };
+      checkUserSuperuser();
+    }, [])
+  );
 
   return (
     <SafeAreaView className="flex-1 bg-white p-4">

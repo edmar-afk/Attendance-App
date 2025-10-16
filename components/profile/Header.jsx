@@ -1,7 +1,8 @@
 import React, { useState, useCallback } from "react";
-import { View, Text, Image } from "react-native";
+import { View, Text, Image, TouchableOpacity, Alert } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
+import { useRouter } from "expo-router";
 import profilebg from "../../assets/image/profilebg.jpg";
 import logo from "../../assets/images/logo.jpg";
 import api from "../../assets/api.js";
@@ -9,6 +10,8 @@ import api from "../../assets/api.js";
 const Header = () => {
   const [userData, setUserData] = useState(null);
   const [profile, setProfile] = useState(null);
+  const [userDetail, setUserDetail] = useState(null);
+  const router = useRouter();
 
   const fetchUserDataAndProfile = async () => {
     try {
@@ -17,12 +20,41 @@ const Header = () => {
         const parsedData = JSON.parse(storedData);
         setUserData(parsedData);
 
-        const response = await api.get(`/api/profile/${parsedData.id}/`);
-        setProfile(response.data);
+        const profileResponse = await api.get(`/api/profile/${parsedData.id}/`);
+        setProfile(profileResponse.data);
+
+        const userResponse = await api.get(`/api/user/${parsedData.id}/`);
+        setUserDetail(userResponse.data);
+
+        const isSuper = userResponse.data.is_superuser === true;
+        await AsyncStorage.setItem("userSuperuser", JSON.stringify(isSuper));
+
+        console.log("Stored userSuperuser:", isSuper);
       }
     } catch (error) {
-      console.error("Error fetching profile data:", error);
+      console.error("Error fetching profile or user data:", error);
     }
+  };
+
+  const handleLogout = async () => {
+    Alert.alert("Logout", "Are you sure you want to logout?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Logout",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await AsyncStorage.clear();
+            setUserData(null);
+            setProfile(null);
+            setUserDetail(null);
+            router.replace("/Login");
+          } catch (error) {
+            console.error("Error during logout:", error);
+          }
+        },
+      },
+    ]);
   };
 
   useFocusEffect(
@@ -32,7 +64,7 @@ const Header = () => {
   );
 
   return (
-    <View className="w-full ">
+    <View className="w-full">
       <View className="h-72">
         <Image
           source={profilebg}
@@ -46,15 +78,24 @@ const Header = () => {
               <Text className="text-white text-4xl font-bold">
                 {profile.user.first_name}
               </Text>
-              <Text className="text-white text-lg">
-                {profile.course} - {profile.year_lvl}
-              </Text>
+              <View className='flex flex-row items-center'>
+                <Text className="text-white text-lg">
+                  {profile.course} - {profile.year_lvl}
+                </Text>
+
+                <TouchableOpacity onPress={handleLogout}>
+                  <Text className="text-red-400 font-bold text-lg ml-4 underline">
+                    Logout
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
           ) : (
             <Text className="text-white text-lg">Loading profile...</Text>
           )}
         </View>
       </View>
+
       <View>
         <Text className="text-gray-800 font-bold text-xl px-8 mt-8">
           Browse some information

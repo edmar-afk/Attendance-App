@@ -10,6 +10,7 @@ const EventsLists = ({
   description,
   dateStarted,
   onEventDeleted,
+  isSuperuser, // receive the prop
 }) => {
   const [editModalVisible, setEditModalVisible] = useState(false);
 
@@ -62,35 +63,41 @@ const EventsLists = ({
 
               <Text className="text-green-100 mb-2">{description}</Text>
 
-              <Text className="text-white text-xs italic mb-2 absolute bottom-5">
+              {/* <Text className="text-white text-xs italic absolute -bottom-8">
                 Be there on time to avoid fines
-              </Text>
+              </Text> */}
 
-              <View className="flex-row gap-3 justify-end space-x-4">
-                <View className="items-center">
-                  <TouchableOpacity
-                    className="w-10 h-10 rounded-full bg-green-500 justify-center items-center"
-                    onPress={openEditModal}
-                  >
-                    <Ionicons name="create-outline" size={20} color="white" />
-                  </TouchableOpacity>
-                  <Text className="text-xs font-bold text-white mt-1">
-                    Edit
-                  </Text>
-                </View>
+              {isSuperuser && ( // only show if superuser
+                <View className="flex-row gap-3 justify-end space-x-4">
+                  <View className="items-center">
+                    <TouchableOpacity
+                      className="w-10 h-10 rounded-full bg-green-500 justify-center items-center"
+                      onPress={openEditModal}
+                    >
+                      <Ionicons name="create-outline" size={20} color="white" />
+                    </TouchableOpacity>
+                    <Text className="text-xs font-bold text-white mt-1">
+                      Edit
+                    </Text>
+                  </View>
 
-                <View className="items-center">
-                  <TouchableOpacity
-                    className="w-10 h-10 rounded-full bg-red-500 justify-center items-center"
-                    onPress={handleDelete}
-                  >
-                    <Ionicons name="trash-outline" size={20} color="#FCA5A5" />
-                  </TouchableOpacity>
-                  <Text className="text-xs font-bold text-white mt-1">
-                    Delete
-                  </Text>
+                  <View className="items-center">
+                    <TouchableOpacity
+                      className="w-10 h-10 rounded-full bg-red-500 justify-center items-center"
+                      onPress={handleDelete}
+                    >
+                      <Ionicons
+                        name="trash-outline"
+                        size={20}
+                        color="#FCA5A5"
+                      />
+                    </TouchableOpacity>
+                    <Text className="text-xs font-bold text-white mt-1">
+                      Delete
+                    </Text>
+                  </View>
                 </View>
-              </View>
+              )}
             </View>
           </View>
         </View>
@@ -106,5 +113,5 @@ const EventsLists = ({
     </View>
   );
 };
-
 export default EventsLists;
+

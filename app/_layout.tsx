@@ -1,8 +1,55 @@
-import { Tabs } from "expo-router";
+import { Tabs, useFocusEffect } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { Text, View } from "react-native";
-import Logout from "./Logout";
+import { Text, View, ActivityIndicator } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import React, { useState } from "react";
+
 export default function Layout() {
+  const [isSuperuser, setIsSuperuser] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      let intervalId;
+
+      const loadSuperuserStatus = async () => {
+        try {
+          const storedSuperuser = await AsyncStorage.getItem("userSuperuser");
+          if (storedSuperuser) {
+            const parsed = JSON.parse(storedSuperuser);
+            setIsSuperuser(parsed);
+            console.log("Reloaded userSuperuser:", parsed);
+          } else {
+            setIsSuperuser(false);
+            console.log("No userSuperuser found — defaulting to false");
+          }
+        } catch (error) {
+          console.error("Error loading userSuperuser:", error);
+        } finally {
+          setIsLoaded(true);
+        }
+      };
+
+      loadSuperuserStatus();
+
+      intervalId = setInterval(loadSuperuserStatus, 2000);
+
+      return () => {
+        if (intervalId) {
+          clearInterval(intervalId);
+          console.log("Interval cleared for Layout");
+        }
+      };
+    }, [])
+  );
+
+  if (!isLoaded) {
+    return (
+      <View className="flex-1 justify-center items-center bg-white">
+        <ActivityIndicator size="large" color="#2563eb" />
+      </View>
+    );
+  }
   return (
     <Tabs
       screenOptions={{
@@ -62,18 +109,28 @@ export default function Layout() {
           tabBarStyle: { display: "none" }, // hides tab bar
         }}
       />
-      <Tabs.Screen
-        name="students"
-        options={{
-          title: "Students",
-          tabBarIcon: ({ color, size }) => (
-            <View className="items-center">
-              <Ionicons name="person" size={size} color={color} />
-              <Text className="text-[10px] -mt-4"></Text>
-            </View>
-          ),
-        }}
-      />
+      {isSuperuser ? (
+        <Tabs.Screen
+          name="students"
+          options={{
+            title: "Students",
+            tabBarIcon: ({ color, size }) => (
+              <View className="items-center">
+                <Ionicons name="person" size={size} color={color} />
+              </View>
+            ),
+          }}
+        />
+      ) : (
+        <Tabs.Screen
+          name="students"
+          options={{
+            href: null,
+            tabBarStyle: { display: "none" },
+          }}
+        />
+      )}
+
       <Tabs.Screen
         name="Profile"
         options={{
@@ -89,13 +146,8 @@ export default function Layout() {
       <Tabs.Screen
         name="Logout"
         options={{
-          title: "Logout",
-          tabBarIcon: ({ color, size }) => (
-            <View className="items-center">
-              <Ionicons name="exit" size={size} color="red" />
-            </View>
-          ),
-          tabBarStyle: { display: "none" }, // hide the tab bar
+          href: null, // completely hides it from the navbar
+          tabBarStyle: { display: "none" }, // ensures no bar shows when visited
         }}
       />
 
