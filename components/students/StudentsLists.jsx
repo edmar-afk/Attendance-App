@@ -37,6 +37,7 @@ export default function StudentsLists({
     year_lvl,
     course,
   });
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     setFormData({ username, first_name, year_lvl, course });
@@ -78,7 +79,6 @@ export default function StudentsLists({
     }
   };
 
-  
   return (
     <>
       <View className="overflow-hidden mb-2 bg-white rounded-lg shadow-md">
@@ -203,13 +203,24 @@ export default function StudentsLists({
                 </View>
 
                 <Text className="text-gray-700 mb-1">Password</Text>
-                <TextInput
-                  value={formData.password || ""}
-                  onChangeText={(text) => handleInputChange("password", text)}
-                  placeholder="Leave blank to keep current password"
-                  secureTextEntry
-                  className="border border-gray-300 rounded-md p-2 mb-3"
-                />
+                <View className="mb-3 flex-row items-center border border-gray-300 rounded-md px-2">
+                  <TextInput
+                    value={formData.password || ""}
+                    onChangeText={(text) => handleInputChange("password", text)}
+                    placeholder="Leave blank to keep current password"
+                    secureTextEntry={!showPassword}
+                    className="flex-1 p-2 text-gray-700"
+                  />
+                  <TouchableOpacity
+                    onPress={() => setShowPassword(!showPassword)}
+                  >
+                    <Ionicons
+                      name={showPassword ? "eye-off" : "eye"}
+                      size={24}
+                      color="gray"
+                    />
+                  </TouchableOpacity>
+                </View>
 
                 <TouchableOpacity
                   onPress={handleUpdate}
