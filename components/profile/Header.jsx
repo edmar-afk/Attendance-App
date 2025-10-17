@@ -7,7 +7,7 @@ import profilebg from "../../assets/image/profilebg.jpg";
 import logo from "../../assets/images/logo.jpg";
 import api from "../../assets/api.js";
 
-const Header = () => {
+const Header = ({ setUserId }) => {
   const [userData, setUserData] = useState(null);
   const [profile, setProfile] = useState(null);
   const [userDetail, setUserDetail] = useState(null);
@@ -28,6 +28,8 @@ const Header = () => {
 
         const isSuper = userResponse.data.is_superuser === true;
         await AsyncStorage.setItem("userSuperuser", JSON.stringify(isSuper));
+
+        if (setUserId) setUserId(profileResponse.data.user.id);
 
         console.log("Stored userSuperuser:", isSuper);
       }
@@ -78,7 +80,7 @@ const Header = () => {
               <Text className="text-white text-4xl font-bold">
                 {profile.user.first_name}
               </Text>
-              <View className='flex flex-row items-center'>
+              <View className="flex flex-row items-center">
                 <Text className="text-white text-lg">
                   {profile.course} - {profile.year_lvl}
                 </Text>

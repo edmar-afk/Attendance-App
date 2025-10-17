@@ -22,6 +22,7 @@ const Profile = () => {
   const router = useRouter();
   const [modalVisible, setModalVisible] = useState(false);
   const scaleValue = new Animated.Value(0);
+  const [userId, setUserId] = useState(null);
 
   const openModal = () => {
     setModalVisible(true);
@@ -52,13 +53,15 @@ const Profile = () => {
 
   return (
     <View className="flex-1 bg-gray-100">
-      <Header />
+      <Header setUserId={setUserId} />
       <ScrollView
         contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 40 }}
       >
         <TouchableOpacity
           className="bg-white p-3 rounded-xl shadow-xl mt-4"
-          onPress={() => router.push("/face-register/FaceRegistration")}
+          onPress={() =>
+            router.push(`/face-register/FaceRegistration?userId=${userId}`)
+          }
         >
           <View className="flex flex-row items-start">
             <View className="flex flex-col items-center">
