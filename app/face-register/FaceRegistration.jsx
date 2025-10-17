@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState, useCallback } from "react";
+import React, { useRef, useState, useCallback } from "react";
 import { View, Text, ActivityIndicator } from "react-native";
 import { WebView } from "react-native-webview";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -7,28 +7,42 @@ import { useLocalSearchParams, useFocusEffect } from "expo-router";
 const FaceRegistration = () => {
   const { attendanceoutId } = useLocalSearchParams();
   const webviewRef = useRef(null);
-  const [showWebView, setShowWebView] = useState(true);
+  const [userData, setUserData] = useState(null);
+  const [showWebView, setShowWebView] = useState(false);
 
-  const sendUserDataToWebView = async () => {
-    const userData = await AsyncStorage.getItem("userData");
+  const sendUserDataToWebView = useCallback(() => {
     if (userData && webviewRef.current) {
-      const payload = { user: JSON.parse(userData), attendanceoutId };
-      const escapedData = JSON.stringify(payload).replace(/'/g, "\\'");
+      const payload = { user: userData, attendanceoutId };
       webviewRef.current.injectJavaScript(`
-        window.dispatchEvent(new MessageEvent('message', { data: '${escapedData}' }));
+        (function() {
+          window.dispatchEvent(new MessageEvent('message', { data: ${JSON.stringify(payload)} }));
+        })();
         true;
       `);
     }
-  };
-
-  useEffect(() => {
-    if (showWebView) sendUserDataToWebView();
-  }, [showWebView]);
+  }, [userData, attendanceoutId]);
 
   useFocusEffect(
     useCallback(() => {
-      setShowWebView(true);
+      let isActive = true;
+
+      const fetchUserData = async () => {
+        try {
+          const storedUserData = await AsyncStorage.getItem("userData");
+          if (storedUserData && isActive) {
+            setUserData(JSON.parse(storedUserData));
+            setShowWebView(true);
+          }
+        } catch (error) {
+          console.error("Failed to load userData:", error);
+        }
+      };
+
+      fetchUserData();
+
       return () => {
+        isActive = false;
+        setShowWebView(false);
         if (webviewRef.current) {
           webviewRef.current.injectJavaScript(`
             const videos = document.querySelectorAll('video');
@@ -40,40 +54,41 @@ const FaceRegistration = () => {
             true;
           `);
         }
-        setShowWebView(false);
       };
     }, [])
   );
 
+  if (!showWebView) {
+    return (
+      <View className="flex-1 justify-center items-center">
+        <ActivityIndicator size="large" color="#0000ff" />
+        <Text>Loading Face Attendance...</Text>
+      </View>
+    );
+  }
+
   return (
     <View className="flex-1">
-      {showWebView ? (
-        <WebView
-          ref={webviewRef}
-          source={{
-            uri: `https://attendance-checker-frontend.vercel.app/`,
-          }}
-          onLoadEnd={sendUserDataToWebView}
-          startInLoadingState
-          renderLoading={() => (
-            <View className="flex-1 justify-center items-center">
-              <ActivityIndicator size="large" color="#0000ff" />
-              <Text>Loading Face Attendance...</Text>
-            </View>
-          )}
-          javaScriptEnabled
-          domStorageEnabled
-          mediaPlaybackRequiresUserAction={false}
-          allowsInlineMediaPlayback
-          allowsProtectedMedia
-          allowsCameraAccess
-          originWhitelist={["*"]}
-        />
-      ) : (
-        <View className="flex-1 justify-center items-center">
-          <Text>Camera stopped</Text>
-        </View>
-      )}
+      <Text>{userData?.id}</Text>
+      <WebView
+        ref={webviewRef}
+        source={{ uri: `https://attendance-checker-frontend.vercel.app/` }}
+        onLoadEnd={() => setTimeout(sendUserDataToWebView, 500)}
+        startInLoadingState
+        renderLoading={() => (
+          <View className="flex-1 justify-center items-center">
+            <ActivityIndicator size="large" color="#0000ff" />
+            <Text>Loading Face Attendance...</Text>
+          </View>
+        )}
+        javaScriptEnabled
+        domStorageEnabled
+        mediaPlaybackRequiresUserAction={false}
+        allowsInlineMediaPlayback
+        allowsProtectedMedia
+        allowsCameraAccess
+        originWhitelist={["*"]}
+      />
     </View>
   );
 };
