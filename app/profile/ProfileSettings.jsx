@@ -16,6 +16,7 @@ import profileImg from "../../assets/image/profile.png";
 import { Picker } from "@react-native-picker/picker";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useFocusEffect } from "@react-navigation/native";
+import { Ionicons } from "@expo/vector-icons";
 
 const ProfileSettings = () => {
   const [loading, setLoading] = useState(true);
@@ -27,7 +28,7 @@ const ProfileSettings = () => {
     username: "",
     new_password: "",
   });
-
+  const [showPassword, setShowPassword] = useState(false);
   const fetchProfile = async () => {
     try {
       setLoading(true);
@@ -159,12 +160,24 @@ const ProfileSettings = () => {
       </View>
 
       <Text className="text-gray-700 mb-1">New Password</Text>
-      <TextInput
-        secureTextEntry
-        value={profile.new_password}
-        onChangeText={(text) => setProfile({ ...profile, new_password: text })}
-        className="border border-gray-300 rounded-lg p-3"
-      />
+      <View className="mb-6 flex-row items-center border border-gray-300 rounded-lg px-3">
+        <TextInput
+          value={profile.new_password}
+          onChangeText={(text) =>
+            setProfile({ ...profile, new_password: text })
+          }
+          secureTextEntry={!showPassword}
+          placeholder="New Password"
+          className="flex-1 p-3 text-gray-700"
+        />
+        <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+          <Ionicons
+            name={showPassword ? "eye-off" : "eye"}
+            size={24}
+            color="gray"
+          />
+        </TouchableOpacity>
+      </View>
       <Text className="mb-6 text-orange-500 text-xs font-semibold mt-1">
         If you don't want to change password, leave this as it is.
       </Text>

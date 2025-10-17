@@ -14,6 +14,7 @@ import {
   Keyboard,
   Platform,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import api from "../assets/api";
 import bgImage from "../assets/images/bg-teal-waves.png";
@@ -23,6 +24,7 @@ export default function Login() {
   const router = useRouter();
   const [formData, setFormData] = useState({ username: "", password: "" });
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (name, value) =>
     setFormData({ ...formData, [name]: value });
@@ -80,15 +82,25 @@ export default function Login() {
                 className="mb-2 h-16 w-full rounded-lg border border-zinc-200 px-4 text-sm text-white"
               />
 
-              <Text className="text-white mt-4">Password</Text>
-              <TextInput
-                value={formData.password}
-                onChangeText={(text) => handleChange("password", text)}
-                placeholder="Password"
-                placeholderTextColor="white"
-                secureTextEntry
-                className="mb-2 h-16 w-full rounded-lg border border-zinc-200 px-4 text-sm text-white"
-              />
+              <View className="mb-2 flex-row items-center border border-zinc-200 rounded-lg h-16 px-4">
+                <TextInput
+                  value={formData.password}
+                  onChangeText={(text) => handleChange("password", text)}
+                  placeholder="Password"
+                  placeholderTextColor="white"
+                  secureTextEntry={!showPassword}
+                  className="flex-1 text-sm text-white"
+                />
+                <TouchableOpacity
+                  onPress={() => setShowPassword(!showPassword)}
+                >
+                  <Ionicons
+                    name={showPassword ? "eye-off" : "eye"}
+                    size={24}
+                    color="white"
+                  />
+                </TouchableOpacity>
+              </View>
 
               <TouchableOpacity
                 onPress={handleSubmit}
