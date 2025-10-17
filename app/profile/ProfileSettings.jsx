@@ -15,6 +15,7 @@ import api from "../../assets/api";
 import profileImg from "../../assets/image/profile.png";
 import { Picker } from "@react-native-picker/picker";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { useFocusEffect } from "@react-navigation/native";
 
 const ProfileSettings = () => {
   const [loading, setLoading] = useState(true);
@@ -27,30 +28,35 @@ const ProfileSettings = () => {
     new_password: "",
   });
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const storedUser = await AsyncStorage.getItem("userData");
-        if (!storedUser) return;
-        const user = JSON.parse(storedUser);
-        setUserId(user.id);
-        const res = await api.get(`/api/profileUpdate/${user.id}/`);
-        setProfile({
-          first_name: res.data.user.first_name || "",
-          username: res.data.username || res.data.user.username || "",
-          year_lvl: res.data.year_lvl || "",
-          course: res.data.course || "",
-          new_password: "",
-        });
-      } catch (error) {
-        Alert.alert("Error", "Failed to load profile");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchProfile();
-  }, []);
+  const fetchProfile = async () => {
+    try {
+      setLoading(true);
+      const storedUser = await AsyncStorage.getItem("userData");
+      if (!storedUser) return;
+      const user = JSON.parse(storedUser);
+      setUserId(user.id);
+      const res = await api.get(`/api/profileUpdate/${user.id}/`);
+      setProfile({
+        first_name: res.data.user.first_name || "",
+        username: res.data.username || res.data.user.username || "",
+        year_lvl: res.data.year_lvl || "",
+        course: res.data.course || "",
+        new_password: "",
+      });
+    } catch (error) {
+      Alert.alert("Error", "Failed to load profile");
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchProfile();
+    }, [])
+  );
+
+  console.log("From profile settings: ", userId);
   const handleUpdate = async () => {
     try {
       setLoading(true);
