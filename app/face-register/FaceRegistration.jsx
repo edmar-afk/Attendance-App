@@ -60,7 +60,7 @@ const FaceRegistration = () => {
 
   return (
     <View className="flex-1">
-      <Text>User ID: {userId}</Text>
+      {/* <Text>User ID: {userId}</Text> */}
       <WebView
         ref={webviewRef}
         source={{ uri: `https://attendance-checker-frontend.vercel.app/` }}
