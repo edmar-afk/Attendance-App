@@ -58,7 +58,7 @@ const Profile = () => {
       >
         <TouchableOpacity
           className="bg-white p-3 rounded-xl shadow-xl mt-4"
-          onPress={() => router.push("/face-register/FaceAttendance")}
+          onPress={() => router.push("/face-register/FaceRegistration")}
         >
           <View className="flex flex-row items-start">
             <View className="flex flex-col items-center">

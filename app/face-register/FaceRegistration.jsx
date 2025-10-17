@@ -4,17 +4,30 @@ import { WebView } from "react-native-webview";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useIsFocused } from "@react-navigation/native";
 
-const FaceAttendance = () => {
+const FaceRegistration = () => {
   const webviewRef = useRef(null);
   const isFocused = useIsFocused();
   const [userData, setUserData] = useState(null);
 
   useEffect(() => {
+    let intervalId;
+
     const fetchUserData = async () => {
-      const data = await AsyncStorage.getItem("userData");
-      setUserData(data);
+      try {
+        const data = await AsyncStorage.getItem("userData");
+        if (data) {
+          setUserData(data);
+          console.log("Refreshed userData:", data);
+        }
+      } catch (error) {
+        console.error("Error fetching userData:", error);
+      }
     };
+
     fetchUserData();
+    intervalId = setInterval(fetchUserData, 2000);
+
+    return () => clearInterval(intervalId);
   }, []);
 
   useEffect(() => {
@@ -36,14 +49,17 @@ const FaceAttendance = () => {
         source={{ uri: "https://attendance-checker-frontend.vercel.app/" }}
         startInLoadingState
         renderLoading={() => (
-          <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+          <View
+            style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+          >
             <ActivityIndicator size="large" color="#0000ff" />
             <Text>Loading Attendance...</Text>
           </View>
         )}
       />
+      <Text>This is registering</Text>
     </View>
   );
 };
 
-export default FaceAttendance;
+export default FaceRegistration;

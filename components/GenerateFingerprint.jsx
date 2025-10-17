@@ -1,5 +1,13 @@
-import React, { useState } from "react";
-import { View, Text, TouchableOpacity, Alert, Image } from "react-native";
+/* eslint-disable react/no-unescaped-entities */
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Alert,
+  Image,
+  ActivityIndicator,
+} from "react-native";
 import * as LocalAuthentication from "expo-local-authentication";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Device from "expo-device";
@@ -9,19 +17,26 @@ import fingerprintIcon from "../assets/image/fingerprintIcon.png";
 
 const GenerateFingerprint = () => {
   const [loading, setLoading] = useState(false);
+  const [userData, setUserData] = useState(null);
+  const [refreshing, setRefreshing] = useState(true);
 
-  const getDeviceId = async () => {
-    let deviceId = await AsyncStorage.getItem("deviceId");
-    if (!deviceId) {
-      if (Crypto.randomUUID) {
-        deviceId = Crypto.randomUUID();
-      } else {
-        deviceId = `${Date.now()}-${Math.random()}`;
+  const refreshUserData = async () => {
+    try {
+      const storedUser = await AsyncStorage.getItem("userData");
+      if (storedUser) {
+        setUserData(JSON.parse(storedUser));
+        console.log("User data refreshed:", JSON.parse(storedUser));
       }
-      await AsyncStorage.setItem("deviceId", deviceId);
+    } catch (error) {
+      console.error("Error refreshing user data:", error);
+    } finally {
+      setRefreshing(false);
     }
-    return deviceId;
   };
+
+  useEffect(() => {
+    refreshUserData();
+  }, []);
 
   const handleFingerprint = async () => {
     try {
@@ -55,20 +70,11 @@ const GenerateFingerprint = () => {
 
       setLoading(true);
 
-      const storedUser = await AsyncStorage.getItem("userData");
-      if (!storedUser) {
-        Alert.alert("Error", "No user data found.");
+      if (!userData || !userData.id) {
+        Alert.alert("Error", "User data not found or invalid.");
         return;
       }
 
-      const userData = JSON.parse(storedUser);
-      const userId = userData.id;
-      if (!userId) {
-        Alert.alert("Error", "User ID not found in user data.");
-        return;
-      }
-
-      // Generate unique device ID
       const deviceId = Crypto.randomUUID
         ? Crypto.randomUUID()
         : `${Date.now()}-${Math.random()}`;
@@ -77,10 +83,7 @@ const GenerateFingerprint = () => {
         device_id: deviceId,
       };
 
-      // Send to backend
-      await api.post(`/api/fingerprints/${userId}/`, deviceInfo);
-
-      // Only save locally if API call succeeds
+      await api.post(`/api/fingerprints/${userData.id}/`, deviceInfo);
       await AsyncStorage.setItem("deviceId", deviceId);
 
       Alert.alert(
@@ -89,29 +92,47 @@ const GenerateFingerprint = () => {
       );
     } catch (error) {
       console.error(error);
-      Alert.alert("Error", "Something went wrong.");
+      Alert.alert(
+        "Error",
+        "You already registered your fingerprint."
+      );
     } finally {
       setLoading(false);
     }
   };
 
+  if (refreshing) {
+    return (
+      <View className="flex-1 justify-center items-center bg-white">
+        <ActivityIndicator size="large" color="#34D399" />
+        <Text className="mt-4 text-gray-700 font-semibold">
+          Refreshing user data...
+        </Text>
+      </View>
+    );
+  }
+
   return (
-    <View className="flex-1 items-center justify-center bg-white mt-24 mb-32">
+    <View className="flex-1 items-center justify-center bg-white mt-24 mb-72">
       <TouchableOpacity
         onPress={handleFingerprint}
         disabled={loading}
         className="items-center"
       >
+        <Text className='text-xs font-extralight text-gray-500'>User id detected: jhcscstudent{userData.id}</Text>
         <Image
           source={fingerprintIcon}
           className="w-44 h-44"
           resizeMode="contain"
         />
-        <View className="">
-          <Text className="text-green-700 font-bold text-lg">
-            {loading ? "Saving..." : "Generate Fingerprint"}
-          </Text>
-        </View>
+        <Text className="text-green-700 font-bold text-lg mt-4">
+          {loading ? "Saving..." : "Generate Fingerprint"} 
+        </Text>
+        <Text className="mt-4 text-center text-orange-600 font-bold">
+          NOTE: By registering this account, you will not be able to register
+          another fingerprint on this app on your phone to prevent attendance
+          cheating - This is one time register per device.
+        </Text>
       </TouchableOpacity>
     </View>
   );

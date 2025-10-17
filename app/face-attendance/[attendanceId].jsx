@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState, useCallback } from "react";
+import React, { useRef, useState, useCallback } from "react";
 import { View, Text, ActivityIndicator } from "react-native";
 import { WebView } from "react-native-webview";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -10,28 +10,35 @@ const FaceAttendance = () => {
   const [showWebView, setShowWebView] = useState(true);
 
   const sendUserDataToWebView = async () => {
-    const userData = await AsyncStorage.getItem("userData");
-    if (userData && webviewRef.current) {
-      const payload = {
-        user: JSON.parse(userData),
-        attendanceId,
-      };
-      const escapedData = JSON.stringify(payload).replace(/'/g, "\\'");
-      webviewRef.current.injectJavaScript(`
-        window.dispatchEvent(new MessageEvent('message', { data: '${escapedData}' }));
-        true;
-      `);
+    try {
+      const userData = await AsyncStorage.getItem("userData");
+      if (userData && webviewRef.current) {
+        const payload = {
+          user: JSON.parse(userData),
+          attendanceId,
+        };
+        const escapedData = JSON.stringify(payload).replace(/'/g, "\\'");
+        webviewRef.current.injectJavaScript(`
+          window.dispatchEvent(new MessageEvent('message', { data: '${escapedData}' }));
+          true;
+        `);
+      }
+    } catch (error) {
+      console.error("Error sending userData to WebView:", error);
     }
   };
-
-  useEffect(() => {
-    if (showWebView) sendUserDataToWebView();
-  }, [showWebView]);
 
   useFocusEffect(
     useCallback(() => {
       setShowWebView(true);
+      sendUserDataToWebView();
+
+      const intervalId = setInterval(() => {
+        sendUserDataToWebView();
+      }, 2000);
+
       return () => {
+        clearInterval(intervalId);
         if (webviewRef.current) {
           webviewRef.current.injectJavaScript(`
             const videos = document.querySelectorAll('video');
@@ -45,7 +52,7 @@ const FaceAttendance = () => {
         }
         setShowWebView(false);
       };
-    }, [])
+    }, [attendanceId])
   );
 
   return (

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -16,10 +16,13 @@ import * as Device from "expo-device";
 import * as Crypto from "expo-crypto";
 import api from "../../assets/api";
 import { useRouter } from "expo-router";
+import { useFocusEffect } from "expo-router";
 
 const TimeInAttendanceModal = ({ attendanceId }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [userData, setUserData] = useState(null);
+  const [deviceId, setDeviceId] = useState(null);
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const router = useRouter();
 
@@ -31,21 +34,53 @@ const TimeInAttendanceModal = ({ attendanceId }) => {
         easing: Easing.out(Easing.ease),
         useNativeDriver: true,
       }).start();
+      refreshData();
     } else {
       scaleAnim.setValue(0);
     }
   }, [modalVisible]);
 
-  const getDeviceId = async () => {
-    let deviceId = await AsyncStorage.getItem("deviceId");
-    if (!deviceId) {
-      deviceId = Crypto.randomUUID
-        ? Crypto.randomUUID()
-        : `${Date.now()}-${Math.random()}`;
-      await AsyncStorage.setItem("deviceId", deviceId);
+  const refreshData = async () => {
+    try {
+      const storedUser = await AsyncStorage.getItem("userData");
+      if (storedUser) setUserData(JSON.parse(storedUser));
+
+      let storedDeviceId = await AsyncStorage.getItem("deviceId");
+      if (!storedDeviceId) {
+        storedDeviceId = Crypto.randomUUID
+          ? Crypto.randomUUID()
+          : `${Date.now()}-${Math.random()}`;
+        await AsyncStorage.setItem("deviceId", storedDeviceId);
+      }
+      setDeviceId(storedDeviceId);
+      console.log(
+        "Refreshed userData and deviceId:",
+        storedUser,
+        storedDeviceId
+      );
+    } catch (error) {
+      console.error("Error refreshing data:", error);
     }
-    return deviceId;
   };
+
+  useEffect(() => {
+    const initialize = async () => {
+      await refreshData();
+    };
+    initialize();
+  }, []);
+
+  useEffect(() => {
+    if (userData) {
+      console.log("User ID after refresh:", userData.id);
+    }
+  }, [userData]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (modalVisible) refreshData();
+    }, [modalVisible])
+  );
 
   const handleFingerprintTimeIn = async () => {
     try {
@@ -64,25 +99,10 @@ const TimeInAttendanceModal = ({ attendanceId }) => {
       if (!result.success)
         return Alert.alert("Failed", "Authentication failed.");
 
+      if (!userData || !deviceId)
+        return Alert.alert("Error", "Missing user or device info.");
+
       setLoading(true);
-
-      const userDataJson = await AsyncStorage.getItem("userData");
-      if (!userDataJson) return Alert.alert("Error", "User not found.");
-      const userData = JSON.parse(userDataJson);
-
-      // ✅ Get the saved deviceId from AsyncStorage
-      const deviceId = await AsyncStorage.getItem("deviceId");
-      if (!deviceId) {
-        Alert.alert(
-          "Error",
-          "No registered device found. Please register your fingerprint first."
-        );
-        return;
-      }
-
-      // Optional: display deviceId in console or alert
-      console.log("Using device ID:", deviceId);
-      // or Alert.alert("Device ID", deviceId);
 
       const verify = await api.get(
         `/api/fingerprints/check/${userData.id}/${deviceId}/`
@@ -112,7 +132,7 @@ const TimeInAttendanceModal = ({ attendanceId }) => {
   };
 
   const closeModal = () => setModalVisible(false);
-
+  console.log("from timein attendance fingerprint: ", userData.id);
   return (
     <View>
       <TouchableOpacity onPress={() => setModalVisible(true)}>
