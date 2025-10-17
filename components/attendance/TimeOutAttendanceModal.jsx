@@ -11,15 +11,16 @@ import {
   Alert,
 } from "react-native";
 import * as LocalAuthentication from "expo-local-authentication";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Device from "expo-device";
-import * as Crypto from "expo-crypto";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../../assets/api";
 import { useRouter } from "expo-router";
 
 const TimeOutAttendanceModal = ({ attendanceoutId }) => {
   const [modalVisible, setModalVisible] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [userData, setUserData] = useState(null);
+  const [deviceData, setDeviceData] = useState(null);
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const router = useRouter();
 
@@ -31,23 +32,45 @@ const TimeOutAttendanceModal = ({ attendanceoutId }) => {
         easing: Easing.out(Easing.ease),
         useNativeDriver: true,
       }).start();
+
+      // Refresh userData and deviceData once
+      refreshDataOnce();
     } else {
       scaleAnim.setValue(0);
     }
   }, [modalVisible]);
 
-  const getDeviceId = async () => {
-    let deviceId = await AsyncStorage.getItem("deviceId");
-    if (!deviceId) {
-      deviceId = Crypto.randomUUID
-        ? Crypto.randomUUID()
-        : `${Date.now()}-${Math.random()}`;
-      await AsyncStorage.setItem("deviceId", deviceId);
+  const refreshDataOnce = async () => {
+    setLoading(true);
+    try {
+      const userDataJson = await AsyncStorage.getItem("userData");
+      if (!userDataJson) {
+        Alert.alert("Error", "User data not found.");
+        return;
+      }
+
+      const currentUser = JSON.parse(userDataJson);
+      setUserData(currentUser);
+
+      const deviceResponse = await api.get(
+        `/api/user-device/${currentUser.id}/`
+      );
+      if (deviceResponse.data.length > 0) {
+        setDeviceData(deviceResponse.data[0]);
+      } else {
+        Alert.alert("No device found for this user.");
+      }
+    } catch (err) {
+      console.error(err);
+      Alert.alert("Error", "Failed to fetch user or device data.");
+    } finally {
+      setLoading(false);
     }
-    return deviceId;
   };
 
   const handleFingerprintTimeOut = async () => {
+    if (!userData || !deviceData) return;
+
     try {
       const compatible = await LocalAuthentication.hasHardwareAsync();
       if (!compatible)
@@ -66,26 +89,8 @@ const TimeOutAttendanceModal = ({ attendanceoutId }) => {
 
       setLoading(true);
 
-      const userDataJson = await AsyncStorage.getItem("userData");
-      if (!userDataJson) return Alert.alert("Error", "User not found.");
-      const userData = JSON.parse(userDataJson);
-
-      // ✅ Get the saved deviceId from AsyncStorage
-      const deviceId = await AsyncStorage.getItem("deviceId");
-      if (!deviceId) {
-        Alert.alert(
-          "Error",
-          "No registered device found. Please register your fingerprint first."
-        );
-        return;
-      }
-
-      // Optional: display deviceId in console or alert
-      console.log("Using device ID:", deviceId);
-      // or Alert.alert("Device ID", deviceId);
-
       const verify = await api.get(
-        `/api/fingerprints/check/${userData.id}/${deviceId}/`
+        `/api/fingerprints/check/${userData.id}/${deviceData.device_id}/`
       );
 
       if (!verify.data.valid) {
@@ -96,7 +101,7 @@ const TimeOutAttendanceModal = ({ attendanceoutId }) => {
       await api.post(
         `/api/attendance/timeout/${attendanceoutId}/${userData.id}/`,
         {
-          device_id: deviceId,
+          device_id: deviceData.device_id,
           device_name: Device.deviceName || "Unknown Device",
         }
       );
@@ -144,14 +149,17 @@ const TimeOutAttendanceModal = ({ attendanceoutId }) => {
                 {loading ? (
                   <>
                     <ActivityIndicator size="large" color="#000" />
-                    <Text className="mt-3 text-gray-600">Processing...</Text>
+                    <Text className="mt-3 text-gray-600">Loading...</Text>
                   </>
                 ) : (
                   <>
                     <Text className="text-xl font-bold mb-3 text-center">
                       Time Out Attendance
                     </Text>
-
+                    <Text className="text-xs font-extralight text-gray-500 text-center">
+                      Device ID: {deviceData?.device_id} - User ID:{" "}
+                      {userData?.id}
+                    </Text>
                     <TouchableOpacity
                       className="bg-green-600 px-6 py-3 rounded-lg mt-3"
                       onPress={handleFingerprintTimeOut}

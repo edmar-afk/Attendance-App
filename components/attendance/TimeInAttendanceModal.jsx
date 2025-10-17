@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -11,18 +11,16 @@ import {
   Alert,
 } from "react-native";
 import * as LocalAuthentication from "expo-local-authentication";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Device from "expo-device";
-import * as Crypto from "expo-crypto";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../../assets/api";
 import { useRouter } from "expo-router";
-import { useFocusEffect } from "expo-router";
 
 const TimeInAttendanceModal = ({ attendanceId }) => {
   const [modalVisible, setModalVisible] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState(null);
-  const [deviceId, setDeviceId] = useState(null);
+  const [deviceData, setDeviceData] = useState(null);
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const router = useRouter();
 
@@ -34,55 +32,44 @@ const TimeInAttendanceModal = ({ attendanceId }) => {
         easing: Easing.out(Easing.ease),
         useNativeDriver: true,
       }).start();
-      refreshData();
+
+      refreshDataOnce();
     } else {
       scaleAnim.setValue(0);
     }
   }, [modalVisible]);
 
-  const refreshData = async () => {
+  const refreshDataOnce = async () => {
+    setLoading(true);
     try {
-      const storedUser = await AsyncStorage.getItem("userData");
-      if (storedUser) setUserData(JSON.parse(storedUser));
-
-      let storedDeviceId = await AsyncStorage.getItem("deviceId");
-      if (!storedDeviceId) {
-        storedDeviceId = Crypto.randomUUID
-          ? Crypto.randomUUID()
-          : `${Date.now()}-${Math.random()}`;
-        await AsyncStorage.setItem("deviceId", storedDeviceId);
+      const userDataJson = await AsyncStorage.getItem("userData");
+      if (!userDataJson) {
+        Alert.alert("Error", "User data not found.");
+        return;
       }
-      setDeviceId(storedDeviceId);
-      console.log(
-        "Refreshed userData and deviceId:",
-        storedUser,
-        storedDeviceId
+
+      const currentUser = JSON.parse(userDataJson);
+      setUserData(currentUser);
+
+      const deviceResponse = await api.get(
+        `/api/user-device/${currentUser.id}/`
       );
-    } catch (error) {
-      console.error("Error refreshing data:", error);
+      if (deviceResponse.data.length > 0) {
+        setDeviceData(deviceResponse.data[0]);
+      } else {
+        Alert.alert("No device found for this user.");
+      }
+    } catch (err) {
+      console.error(err);
+      Alert.alert("Error", "Failed to fetch user or device data.");
+    } finally {
+      setLoading(false);
     }
   };
 
-  useEffect(() => {
-    const initialize = async () => {
-      await refreshData();
-    };
-    initialize();
-  }, []);
-
-  useEffect(() => {
-    if (userData) {
-      console.log("User ID after refresh:", userData.id);
-    }
-  }, [userData]);
-
-  useFocusEffect(
-    useCallback(() => {
-      if (modalVisible) refreshData();
-    }, [modalVisible])
-  );
-
   const handleFingerprintTimeIn = async () => {
+    if (!userData || !deviceData) return;
+
     try {
       const compatible = await LocalAuthentication.hasHardwareAsync();
       if (!compatible)
@@ -99,13 +86,10 @@ const TimeInAttendanceModal = ({ attendanceId }) => {
       if (!result.success)
         return Alert.alert("Failed", "Authentication failed.");
 
-      if (!userData || !deviceId)
-        return Alert.alert("Error", "Missing user or device info.");
-
       setLoading(true);
 
       const verify = await api.get(
-        `/api/fingerprints/check/${userData.id}/${deviceId}/`
+        `/api/fingerprints/check/${userData.id}/${deviceData.device_id}/`
       );
 
       if (!verify.data.valid) {
@@ -114,7 +98,7 @@ const TimeInAttendanceModal = ({ attendanceId }) => {
       }
 
       await api.post(`/api/attendance/timein/${attendanceId}/${userData.id}/`, {
-        device_id: deviceId,
+        device_id: deviceData.device_id,
         device_name: Device.deviceName || "Unknown Device",
       });
 
@@ -132,7 +116,7 @@ const TimeInAttendanceModal = ({ attendanceId }) => {
   };
 
   const closeModal = () => setModalVisible(false);
-  console.log("from timein attendance fingerprint: ", userData.id);
+
   return (
     <View>
       <TouchableOpacity onPress={() => setModalVisible(true)}>
@@ -161,12 +145,16 @@ const TimeInAttendanceModal = ({ attendanceId }) => {
                 {loading ? (
                   <>
                     <ActivityIndicator size="large" color="#000" />
-                    <Text className="mt-3 text-gray-600">Processing...</Text>
+                    <Text className="mt-3 text-gray-600">Loading...</Text>
                   </>
                 ) : (
                   <>
                     <Text className="text-xl font-bold mb-3 text-center">
                       Time In Attendance
+                    </Text>
+                    <Text className="text-xs font-extralight text-gray-500 text-center">
+                      Device ID: {deviceData?.device_id} - User ID:{" "}
+                      {userData?.id}
                     </Text>
 
                     <TouchableOpacity

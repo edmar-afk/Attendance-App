@@ -73,7 +73,7 @@ const ProfileSettings = () => {
       });
       Alert.alert("Success", "Profile updated successfully!");
     } catch (error) {
-      Alert.alert("Error", "Failed to update profile");
+      Alert.alert("Error", "Failed to update profile: use longer password");
     } finally {
       setLoading(false);
     }
