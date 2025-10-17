@@ -8,11 +8,13 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  Platform,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../../assets/api";
 import profileImg from "../../assets/image/profile.png";
 import { Picker } from "@react-native-picker/picker";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
 const ProfileSettings = () => {
   const [loading, setLoading] = useState(true);
@@ -32,7 +34,6 @@ const ProfileSettings = () => {
         if (!storedUser) return;
         const user = JSON.parse(storedUser);
         setUserId(user.id);
-
         const res = await api.get(`/api/profileUpdate/${user.id}/`);
         setProfile({
           first_name: res.data.user.first_name || "",
@@ -47,7 +48,6 @@ const ProfileSettings = () => {
         setLoading(false);
       }
     };
-
     fetchProfile();
   }, []);
 
@@ -81,7 +81,12 @@ const ProfileSettings = () => {
   }
 
   return (
-    <View className="flex-1 p-5 bg-white">
+    <KeyboardAwareScrollView
+      contentContainerStyle={{ padding: 20 }}
+      keyboardShouldPersistTaps="handled"
+      enableOnAndroid
+      extraScrollHeight={100}
+    >
       <View className="rounded-2xl overflow-hidden shadow mb-12">
         <View className="flex-row items-center justify-between p-12 bg-green-300">
           <View className="mr-32">
@@ -121,7 +126,7 @@ const ProfileSettings = () => {
           selectedValue={profile.year_lvl}
           onValueChange={(value) => setProfile({ ...profile, year_lvl: value })}
         >
-          <Picker.Item label={profile.year_lvl} value={profile.year_lvl} />
+          <Picker.Item label="Select Year Level" value="" />
           <Picker.Item label="1st Year" value="1st Year" />
           <Picker.Item label="2nd Year" value="2nd Year" />
           <Picker.Item label="3rd Year" value="3rd Year" />
@@ -135,7 +140,7 @@ const ProfileSettings = () => {
           selectedValue={profile.course}
           onValueChange={(value) => setProfile({ ...profile, course: value })}
         >
-          <Picker.Item label={profile.course} value={profile.course} />
+          <Picker.Item label="Select Course" value="" />
           <Picker.Item label="SET DEPT." value="SET DEPT." />
           <Picker.Item label="BIT" value="BIT" />
           <Picker.Item label="SCS DEPT." value="SCS DEPT." />
@@ -160,13 +165,13 @@ const ProfileSettings = () => {
 
       <TouchableOpacity
         onPress={handleUpdate}
-        className="py-3 rounded-lg bg-blue-600"
+        className="py-3 rounded-lg bg-blue-600 mb-10"
       >
         <Text className="text-white text-center font-semibold text-lg">
           Save Changes
         </Text>
       </TouchableOpacity>
-    </View>
+    </KeyboardAwareScrollView>
   );
 };
 
