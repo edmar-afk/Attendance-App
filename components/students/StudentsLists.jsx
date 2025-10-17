@@ -165,12 +165,15 @@ export default function StudentsLists({
                     onValueChange={(value) =>
                       handleInputChange("year_lvl", value)
                     }
-                    className="p-2"
+                    className="border border-gray-300 rounded-lg p-2"
                   >
-                    <Picker.Item
-                      label={formData.year_lvl}
-                      value={formData.year_lvl}
-                    />
+                    {!formData.year_lvl && (
+                      <Picker.Item
+                        label="Select Year Level"
+                        value=""
+                        color="#9CA3AF"
+                      />
+                    )}
                     <Picker.Item label="1st Year" value="1st Year" />
                     <Picker.Item label="2nd Year" value="2nd Year" />
                     <Picker.Item label="3rd Year" value="3rd Year" />

@@ -126,6 +126,7 @@ const Students = () => {
         <Picker
           selectedValue={selectedCourse}
           onValueChange={(value) => setSelectedCourse(value)}
+          style={{ color: "black" }}
         >
           <Picker.Item label="All Courses" value="" />
           {courses.map((course) => (
@@ -137,6 +138,7 @@ const Students = () => {
         <Picker
           selectedValue={selectedYear}
           onValueChange={(value) => setSelectedYear(value)}
+          style={{ color: "black" }}
         >
           <Picker.Item label="All Years" value="" />
           {years.map((year) => (

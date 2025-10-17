@@ -1,63 +1,79 @@
-import React, { useRef, useEffect, useState } from "react";
-import { View, ActivityIndicator, Text } from "react-native";
+import React, { useRef, useEffect, useState, useCallback } from "react";
+import { View, Text, ActivityIndicator } from "react-native";
 import { WebView } from "react-native-webview";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useIsFocused } from "@react-navigation/native";
+import { useLocalSearchParams, useFocusEffect } from "expo-router";
 
 const FaceRegistration = () => {
+  const { attendanceoutId } = useLocalSearchParams();
   const webviewRef = useRef(null);
-  const isFocused = useIsFocused();
-  const [userData, setUserData] = useState(null);
+  const [showWebView, setShowWebView] = useState(true);
 
-  useEffect(() => {
-    let intervalId;
-
-    const fetchUserData = async () => {
-      try {
-        const data = await AsyncStorage.getItem("userData");
-        if (data) {
-          setUserData(data);
-          console.log("Refreshed userData:", data);
-        }
-      } catch (error) {
-        console.error("Error fetching userData:", error);
-      }
-    };
-
-    fetchUserData();
-    intervalId = setInterval(fetchUserData, 2000);
-
-    return () => clearInterval(intervalId);
-  }, []);
-
-  useEffect(() => {
-    if (isFocused && webviewRef.current && userData) {
-      const escapedData = userData.replace(/'/g, "\\'");
+  const sendUserDataToWebView = async () => {
+    const userData = await AsyncStorage.getItem("userData");
+    if (userData && webviewRef.current) {
+      const payload = { user: JSON.parse(userData), attendanceoutId };
+      const escapedData = JSON.stringify(payload).replace(/'/g, "\\'");
       webviewRef.current.injectJavaScript(`
         window.dispatchEvent(new MessageEvent('message', { data: '${escapedData}' }));
         true;
       `);
     }
-  }, [isFocused, userData]);
+  };
 
-  if (!isFocused) return null;
+  useEffect(() => {
+    if (showWebView) sendUserDataToWebView();
+  }, [showWebView]);
+
+  useFocusEffect(
+    useCallback(() => {
+      setShowWebView(true);
+      return () => {
+        if (webviewRef.current) {
+          webviewRef.current.injectJavaScript(`
+            const videos = document.querySelectorAll('video');
+            videos.forEach(v => {
+              if(v.srcObject){
+                v.srcObject.getTracks().forEach(track => track.stop());
+              }
+            });
+            true;
+          `);
+        }
+        setShowWebView(false);
+      };
+    }, [])
+  );
 
   return (
-    <View style={{ flex: 1 }}>
-      <WebView
-        ref={webviewRef}
-        source={{ uri: "https://attendance-checker-frontend.vercel.app/" }}
-        startInLoadingState
-        renderLoading={() => (
-          <View
-            style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
-          >
-            <ActivityIndicator size="large" color="#0000ff" />
-            <Text>Loading Attendance...</Text>
-          </View>
-        )}
-      />
-      <Text>This is registering</Text>
+    <View className="flex-1">
+      {showWebView ? (
+        <WebView
+          ref={webviewRef}
+          source={{
+            uri: `https://attendance-checker-frontend.vercel.app/`,
+          }}
+          onLoadEnd={sendUserDataToWebView}
+          startInLoadingState
+          renderLoading={() => (
+            <View className="flex-1 justify-center items-center">
+              <ActivityIndicator size="large" color="#0000ff" />
+              <Text>Loading Face Attendance...</Text>
+            </View>
+          )}
+          javaScriptEnabled
+          domStorageEnabled
+          mediaPlaybackRequiresUserAction={false}
+          allowsInlineMediaPlayback
+          allowsProtectedMedia
+          allowsCameraAccess
+          originWhitelist={["*"]}
+        />
+      ) : (
+        <View className="flex-1 justify-center items-center">
+          <Text>Camera stopped</Text>
+        </View>
+      )}
     </View>
   );
 };

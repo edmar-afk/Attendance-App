@@ -69,12 +69,15 @@ const AddAttendance = () => {
 
       const minutes = parseInt(timeLimit) || 15;
 
-      const response = await api.post(`/api/attendance/upload/${userData.id}/`, {
-        event_name: eventName,
-        location: location,
-        time_limit: minutes, // backend calculates from now + X minutes
-        is_time_in:true,
-      });
+      const response = await api.post(
+        `/api/attendance/upload/${userData.id}/`,
+        {
+          event_name: eventName,
+          location: location,
+          time_limit: minutes, // backend calculates from now + X minutes
+          is_time_in: true,
+        }
+      );
 
       if (response.status === 201) {
         Alert.alert("Success", "Attendance uploaded successfully!");
@@ -114,9 +117,10 @@ const AddAttendance = () => {
 
               <TextInput
                 placeholder="Event Name"
+                placeholderTextColor="#9CA3AF"
                 value={eventName}
                 onChangeText={setEventName}
-                className="border border-gray-300 rounded-lg p-3 mb-3"
+                className="border border-gray-300 rounded-lg p-3 mb-3 text-gray-700"
               />
 
               <View className="flex-row items-center justify-start gap-3 px-3 py-3 mb-3">
@@ -131,20 +135,21 @@ const AddAttendance = () => {
                     permissionRejected
                       ? "text-red-500 font-bold"
                       : location
-                      ? "text-green-600 font-bold"
-                      : "text-red-500 font-bold"
+                        ? "text-green-600 font-bold"
+                        : "text-red-500 font-bold"
                   }`}
                 >
                   {permissionRejected
                     ? "Permission Rejected"
                     : location
-                    ? "Location Set!"
-                    : "Location not Set"}
+                      ? "Location Set!"
+                      : "Location not Set"}
                 </Text>
               </View>
 
               <TextInput
                 placeholder="Time Limit (in minutes)"
+                placeholderTextColor="#9CA3AF"
                 value={timeLimit}
                 onChangeText={setTimeLimit}
                 keyboardType="numeric"

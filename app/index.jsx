@@ -45,7 +45,7 @@ export default function Index() {
                 Get Registered 🚀
               </Text>
             </TouchableOpacity>
-             {/* <TouchableOpacity
+             <TouchableOpacity
               onPress={() => router.push("/Attendance")}
               className="rounded-md bg-green-600 px-8 mt-12 py-3 md:py-4 md:px-10"
             >
@@ -60,7 +60,7 @@ export default function Index() {
               <Text className="text-white text-base md:text-lg font-medium">
                Shortcut Profile
               </Text>
-            </TouchableOpacity> */}
+            </TouchableOpacity>
           </View>
         </View>
       </View>
