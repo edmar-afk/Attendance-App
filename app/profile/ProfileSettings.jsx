@@ -29,6 +29,8 @@ const ProfileSettings = () => {
     new_password: "",
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [isSuperuser, setIsSuperuser] = useState(false);
+
   const fetchProfile = async () => {
     try {
       setLoading(true);
@@ -36,6 +38,7 @@ const ProfileSettings = () => {
       if (!storedUser) return;
       const user = JSON.parse(storedUser);
       setUserId(user.id);
+      setIsSuperuser(user.is_superuser); // ← store superuser status here
       const res = await api.get(`/api/profileUpdate/${user.id}/`);
       setProfile({
         first_name: res.data.user.first_name || "",
@@ -113,19 +116,25 @@ const ProfileSettings = () => {
         </View>
       </View>
 
-      <Text className="text-gray-700 mb-1">First Name</Text>
-      <TextInput
-        value={profile.first_name}
-        onChangeText={(text) => setProfile({ ...profile, first_name: text })}
-        className="border border-gray-300 rounded-lg p-3 mb-4"
-      />
+      {isSuperuser && (
+        <>
+          <Text className="text-gray-700 mb-1">First Name</Text>
+          <TextInput
+            value={profile.first_name}
+            onChangeText={(text) =>
+              setProfile({ ...profile, first_name: text })
+            }
+            className="border border-gray-300 rounded-lg p-3 mb-4"
+          />
 
-      <Text className="text-gray-700 mb-1">School ID</Text>
-      <TextInput
-        value={profile.username}
-        onChangeText={(text) => setProfile({ ...profile, username: text })}
-        className="border border-gray-300 rounded-lg p-3 mb-4"
-      />
+          <Text className="text-gray-700 mb-1">School ID</Text>
+          <TextInput
+            value={profile.username}
+            onChangeText={(text) => setProfile({ ...profile, username: text })}
+            className="border border-gray-300 rounded-lg p-3 mb-4"
+          />
+        </>
+      )}
 
       <Text className="text-gray-700 mb-1">Year Level</Text>
       <View className="border border-gray-300 rounded-lg mb-4">

@@ -77,10 +77,15 @@ const Header = ({ setUserId }) => {
           <Image source={logo} className="w-24 h-24 rounded-full" />
           {profile ? (
             <View className="flex flex-col gap-2">
-              <Text className="text-white text-4xl font-bold">
+              <Text
+                className="text-white text-4xl font-bold"
+                numberOfLines={0}
+                style={{ flexWrap: "wrap", maxWidth: "90%" }}
+              >
                 {profile.user.first_name}
               </Text>
-              <View className="flex flex-row items-center">
+
+              <View className="flex flex-row items-center flex-wrap">
                 <Text className="text-white text-lg">
                   {profile.course} - {profile.year_lvl}
                 </Text>
