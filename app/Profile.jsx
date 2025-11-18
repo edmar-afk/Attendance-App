@@ -17,7 +17,7 @@ import faceImg from "../assets/image/face-recognition.png";
 import profileImg from "../assets/image/profile.png";
 import eventsImg from "../assets/image/events.png";
 import GenerateFingerprint from "../components/GenerateFingerprint";
-
+import meetingimg from "../assets/image/meeting.png";
 const Profile = () => {
   const router = useRouter();
   const [modalVisible, setModalVisible] = useState(false);
@@ -57,6 +57,29 @@ const Profile = () => {
       <ScrollView
         contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 40 }}
       >
+        <TouchableOpacity
+          className="bg-white p-3 rounded-xl shadow-xl mt-4"
+          onPress={() =>
+            router.push(`/history-logs/History`)
+          }
+        >
+          <View className="flex flex-row items-start">
+            <View className="flex flex-col items-center">
+              <Image source={meetingimg} className="w-28 h-28 self-center" />
+              <Text className="font-font text-blue-600 text-xs">
+                Tap to View
+              </Text>
+            </View>
+            <View className="flex-1 flex flex-col ml-2 mt-4">
+              <Text className="font-semibold mb-1">History Logs</Text>
+              <Text className="leading-6">
+                Face registration records your face for automatic time-in and
+                time-out.
+              </Text>
+            </View>
+          </View>
+        </TouchableOpacity>
+
         <TouchableOpacity
           className="bg-white p-3 rounded-xl shadow-xl mt-4"
           onPress={() =>

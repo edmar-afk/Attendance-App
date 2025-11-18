@@ -25,7 +25,7 @@ const AttendanceList = () => {
   const [userLocation, setUserLocation] = useState(null);
   const [locationEnabled, setLocationEnabled] = useState(false);
   const [deletingIds, setDeletingIds] = useState([]);
-
+  
   const [isSuperuser, setIsSuperuser] = useState(false);
   useEffect(() => {
     let subscription;

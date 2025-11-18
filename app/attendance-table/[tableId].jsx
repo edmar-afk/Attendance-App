@@ -30,39 +30,86 @@ const AttendanceTable = () => {
     is_time_in: false,
     is_time_out: false,
   });
+  const [userData, setUserData] = useState(null);
+
   const [userSuperuser, setUserSuperuser] = useState(null);
-  console.log("from generate: ", userSuperuser);
+  console.log("from attendance Table: ", userSuperuser);
   // Filters
   const [searchText, setSearchText] = useState("");
   const [selectedCourse, setSelectedCourse] = useState("");
   const [selectedYear, setSelectedYear] = useState("");
 
   useFocusEffect(
-    React.useCallback(() => {
-      let intervalId;
+    useCallback(() => {
+      let isActive = true;
 
-      const loadUserSuperuser = async () => {
+      const loadData = async () => {
         try {
-          const storedData = await AsyncStorage.getItem("userSuperuser");
-          if (storedData) {
-            const parsed = JSON.parse(storedData);
-            setUserSuperuser(parsed);
-            console.log("Updated userSuperuser:", parsed);
-          } else {
-            setUserSuperuser(null);
-            console.log("No userSuperuser found");
+          const stored = await AsyncStorage.getItem("userData");
+          const parsedUser = stored ? JSON.parse(stored) : null;
+
+          const storedSuperuser = await AsyncStorage.getItem("userSuperuser");
+          const parsedSuper = storedSuperuser
+            ? JSON.parse(storedSuperuser)
+            : null;
+
+          if (!isActive) return;
+
+          setUserData(parsedUser);
+          setUserSuperuser(parsedSuper);
+
+          if (!tableId) return;
+
+          // Fetch attendance records only if we have userData
+          if (parsedSuper) {
+            // superuser: fetch all records
+            const response = await api.get(
+              `/api/attendance-filter/${tableId}/records/`,
+              {
+                params: {
+                  year_lvl: selectedYear || undefined,
+                  course: selectedCourse || undefined,
+                  search: searchText || undefined,
+                },
+              }
+            );
+            setRecords(response.data);
+          } else if (parsedUser?.id) {
+            // regular user: fetch single record
+            const response = await api.get(
+              `/api/single-attendance-record/${tableId}/${parsedUser.id}/`
+            );
+            const record = response.data;
+            setRecords([
+              {
+                id: record.id,
+                user_first_name: parsedUser.first_name,
+                time_in: record.time_in || "",
+                time_out: record.time_out || "",
+              },
+            ]);
           }
         } catch (error) {
-          console.error("Error loading userSuperuser:", error);
+          console.log(error);
+          if (!error.response || error.response.status !== 404) {
+            Alert.alert("Error", "Failed to load attendance records.");
+          }
+        } finally {
+          if (isActive) {
+            setLoading(false);
+            setRefreshing(false);
+          }
         }
       };
 
-      loadUserSuperuser();
-      intervalId = setInterval(loadUserSuperuser, 3000);
+      loadData();
 
-      return () => clearInterval(intervalId);
-    }, [])
+      return () => {
+        isActive = false;
+      };
+    }, [tableId, selectedCourse, selectedYear, searchText])
   );
+
   useFocusEffect(
     useCallback(() => {
       fetchAttendanceStatus();
@@ -97,22 +144,43 @@ const AttendanceTable = () => {
   const fetchAttendanceRecords = async () => {
     try {
       if (!refreshing) setLoading(true);
-      const response = await api.get(
-        `/api/attendance-filter/${tableId}/records/`,
-        {
+
+      let response;
+
+      if (userSuperuser) {
+        // superuser: fetch all records
+        response = await api.get(`/api/attendance-filter/${tableId}/records/`, {
           params: {
             year_lvl: selectedYear || undefined,
             course: selectedCourse || undefined,
             search: searchText || undefined,
           },
-        }
-      );
-      setRecords(response.data);
+        });
+        setRecords(response.data);
+      } else {
+        // regular user: fetch only their single record
+        if (!userData?.id) return;
+        response = await api.get(
+          `/api/single-attendance-record/${tableId}/${userData.id}/`
+        );
+        const record = response.data;
+        // map to match the table format
+        setRecords([
+          {
+            id: record.id,
+            user_first_name: userData.first_name,
+            time_in: record.time_in || "",
+            time_out: record.time_out || "",
+          },
+        ]);
+      }
     } catch (error) {
-      Alert.alert("Error", "Failed to load attendance records.");
+      console.log(error);
+      console.log(error, "Failed to load attendance records.");
     } finally {
       setLoading(false);
       setRefreshing(false);
+      alert;
     }
   };
 
@@ -147,6 +215,8 @@ const AttendanceTable = () => {
       </View>
     );
   }
+
+  console.log("from attendance Table userData.id: ", userData?.id);
 
   return (
     <View className="flex-1 p-4 mt-8">
@@ -238,7 +308,6 @@ const AttendanceTable = () => {
 
       <ScrollView horizontal>
         <View>
-          {/* Header */}
           <View className="bg-white border-b border-gray-200 flex-row">
             <Text className="text-sm font-medium text-gray-900 px-6 py-4 w-40">
               Student Name
@@ -251,8 +320,19 @@ const AttendanceTable = () => {
             </Text>
           </View>
 
-          {/* Body */}
-          {records.length === 0 ? (
+          {records.length === 0 && !userSuperuser && userData ? (
+            <View className="flex-row border-b border-gray-200 bg-gray-100">
+              <Text className="text-sm text-gray-900 font-light px-6 py-4 w-40">
+                {userData.first_name}
+              </Text>
+              <Text className="text-sm px-6 py-4 w-32 text-red-500">
+                absent
+              </Text>
+              <Text className="text-sm px-6 py-4 w-32 text-red-500">
+                absent
+              </Text>
+            </View>
+          ) : records.length === 0 ? (
             <View className="py-10">
               <Text className="text-center text-gray-500 text-base">
                 No student record found.
@@ -276,7 +356,7 @@ const AttendanceTable = () => {
                       : "text-red-500 font-bold"
                   }`}
                 >
-                  {item.time_in || "Absent"}
+                  {item.time_in || "absent"}
                 </Text>
                 <Text
                   className={`text-sm px-6 py-4 w-32 ${
@@ -285,7 +365,7 @@ const AttendanceTable = () => {
                       : "text-red-500 font-bold"
                   }`}
                 >
-                  {item.time_out || "Absent"}
+                  {item.time_out || "absent"}
                 </Text>
               </View>
             ))

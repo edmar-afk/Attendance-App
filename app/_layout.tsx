@@ -174,6 +174,13 @@ export default function Layout() {
         }}
       />
       <Tabs.Screen
+        name="history-logs"
+        options={{
+          href: null, // completely hides it from the navbar
+          tabBarStyle: { display: "none" }, // ensures no bar shows when visited
+        }}
+      />
+      <Tabs.Screen
         name="profile"
         options={{
           href: null, // completely hides it from the navbar

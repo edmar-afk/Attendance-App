@@ -73,6 +73,7 @@ const Header = ({ setUserId }) => {
           className="absolute w-full h-full rounded-b-3xl top-0"
           resizeMode="cover"
         />
+        <Text className="text-white mt-16 -mb-24 text-right mr-4 font-semibold text-xl">SSC Attendance system</Text>
         <View className="flex flex-row items-center px-8 gap-6 mt-32">
           <Image source={logo} className="w-24 h-24 rounded-full" />
           {profile ? (
