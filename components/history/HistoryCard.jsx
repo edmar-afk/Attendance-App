@@ -34,7 +34,7 @@ const HistoryCard = ({ title, subtitle, date }) => {
   const relativeTime = getRelativeTime(date);
 
   return (
-    <View className="flex-1 mb-4">
+    <View className="mb-4">
       <View className="w-full mx-auto bg-green-600 rounded-xl shadow-lg p-5">
         <View className="flex flex-row">
           <View className="flex-1">
