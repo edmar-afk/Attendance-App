@@ -59,9 +59,7 @@ const Profile = () => {
       >
         <TouchableOpacity
           className="bg-white p-3 rounded-xl shadow-xl mt-4"
-          onPress={() =>
-            router.push(`/history-logs/History`)
-          }
+          onPress={() => router.push(`/history-logs/History`)}
         >
           <View className="flex flex-row items-start">
             <View className="flex flex-col items-center">
@@ -73,8 +71,7 @@ const Profile = () => {
             <View className="flex-1 flex flex-col ml-2 mt-4">
               <Text className="font-semibold mb-1">History Logs</Text>
               <Text className="leading-6">
-                Face registration records your face for automatic time-in and
-                time-out.
+                View your automatic time-in and time-out records here.
               </Text>
             </View>
           </View>

@@ -86,16 +86,23 @@ const GenerateFingerprint = () => {
       await api.post(`/api/fingerprints/${userData.id}/`, deviceInfo);
       await AsyncStorage.setItem("deviceId", deviceId);
 
+      // Save history log
+      const historyLogData = {
+        title: "Fingerprint Registration",
+        subtitle: "You registered your fingerprint",
+      };
+      await api.post(
+        `/api/history-logs/${userData.id}/create/`,
+        historyLogData
+      );
+
       Alert.alert(
         "Success",
-        "Fingerprint saved and device registered successfully."
+        "Fingerprint saved, device registered, and history log recorded successfully."
       );
     } catch (error) {
       console.error(error);
-      Alert.alert(
-        "Error",
-        "You already registered your fingerprint."
-      );
+      Alert.alert("Error", "You already registered your fingerprint.");
     } finally {
       setLoading(false);
     }
@@ -119,14 +126,16 @@ const GenerateFingerprint = () => {
         disabled={loading}
         className="items-center"
       >
-        <Text className='text-xs font-extralight text-gray-500'>User id detected: jhcscstudent{userData.id}</Text>
+        <Text className="text-xs font-extralight text-gray-500">
+          User id detected: jhcscstudent{userData.id}
+        </Text>
         <Image
           source={fingerprintIcon}
           className="w-44 h-44"
           resizeMode="contain"
         />
         <Text className="text-green-700 font-bold text-lg mt-4">
-          {loading ? "Saving..." : "Generate Fingerprint"} 
+          {loading ? "Saving..." : "Generate Fingerprint"}
         </Text>
         <Text className="mt-4 text-center text-orange-600 font-bold">
           NOTE: By registering this account, you will not be able to register
