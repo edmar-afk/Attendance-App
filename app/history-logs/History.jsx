@@ -1,4 +1,4 @@
-import { View, Text } from "react-native";
+import { View, Text, ScrollView } from "react-native";
 import React, { useState } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -20,11 +20,10 @@ const History = () => {
           if (!storedUser) return;
 
           const user = JSON.parse(storedUser);
-          console.log("Reloaded user:", user.id);
           setUserId(user.id);
 
           const res = await api.get(`/api/history/${user.id}/`);
-          setHistory(res.data);
+          if (isActive) setHistory(res.data);
         } catch (error) {
           console.error("Error loading history:", error);
         }
@@ -41,18 +40,19 @@ const History = () => {
   return (
     <View className="flex-1 px-4 pr-8 mt-8">
       {history.length > 0 ? (
-        history.map((item) => (
-          <HistoryCard
-            key={item.id}
-            title={item.title}
-            subtitle={item.subtitle}
-            date={item.date}
-          />
-        ))
+        <ScrollView showsVerticalScrollIndicator={true}>
+          {history.map((item) => (
+            <HistoryCard
+              key={item.id}
+              title={item.title}
+              subtitle={item.subtitle}
+              date={item.date}
+            />
+          ))}
+        </ScrollView>
       ) : (
         <Text className="text-center text-gray-500 mt-4">
-          No history shown
-          {userId ? `(User ID: ${userId})` : ""}
+          No history shown{userId ? `(User ID: ${userId})` : ""}
         </Text>
       )}
     </View>

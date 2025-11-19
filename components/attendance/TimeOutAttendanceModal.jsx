@@ -106,6 +106,17 @@ const TimeOutAttendanceModal = ({ attendanceoutId }) => {
         }
       );
 
+      // Fetch attendance data to get event_name
+      const { data: attendanceData } = await api.get(
+        `/api/attendance/${attendanceoutId}/`
+      );
+
+      // Create history log
+      await api.post(`/api/history-logs/${userData.id}/create/`, {
+        title: "Fingerprint Time Out",
+        subtitle: `You successfully timed out of the event ${attendanceData?.event_name}`,
+      });
+
       Alert.alert("Success", "You have successfully timed out!");
       closeModal();
     } catch (error) {

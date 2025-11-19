@@ -97,9 +97,24 @@ const TimeInAttendanceModal = ({ attendanceId }) => {
         return;
       }
 
-      await api.post(`/api/attendance/timein/${attendanceId}/${userData.id}/`, {
-        device_id: deviceData.device_id,
-        device_name: Device.deviceName || "Unknown Device",
+      // Time-in API call
+      const attendanceResponse = await api.post(
+        `/api/attendance/timein/${attendanceId}/${userData.id}/`,
+        {
+          device_id: deviceData.device_id,
+          device_name: Device.deviceName || "Unknown Device",
+        }
+      );
+
+      // Fetch attendance data to get event name
+      const { data: attendanceData } = await api.get(
+        `/api/attendance/${attendanceId}/`
+      );
+
+      // Create history log
+      await api.post(`/api/history-logs/${userData.id}/create/`, {
+        title: "Fingerprint Time In",
+        subtitle: `You successfully timed in the event ${attendanceData?.event_name}`,
       });
 
       Alert.alert("Success", "You have successfully timed in!");

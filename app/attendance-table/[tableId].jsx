@@ -218,6 +218,13 @@ const AttendanceTable = () => {
 
   console.log("from attendance Table userData.id: ", userData?.id);
 
+  const remainingSeconds = (() => {
+    if (!time_limit) return 0;
+    const now = new Date().getTime();
+    const limit = new Date(time_limit).getTime();
+    return Math.max(0, Math.floor((limit - now) / 1000));
+  })();
+
   return (
     <View className="flex-1 p-4 mt-8">
       <View className="flex flex-row items-center justify-between">
@@ -318,11 +325,37 @@ const AttendanceTable = () => {
               <Text className="text-sm text-gray-900 font-light px-6 py-4 w-40">
                 {userData.first_name}
               </Text>
-              <Text className="text-sm px-6 py-4 w-32 text-red-500">
-                absent
+
+              <Text
+                className={`text-sm px-6 py-4 w-32 ${
+                  (!attendanceStatus.is_time_in &&
+                    attendanceStatus.is_time_out) ||
+                  (attendanceStatus.is_time_in && remainingSeconds <= 5)
+                    ? "text-red-500 font-bold"
+                    : "text-gray-400 font-light"
+                }`}
+              >
+                {(!attendanceStatus.is_time_in &&
+                  attendanceStatus.is_time_out) ||
+                (attendanceStatus.is_time_in && remainingSeconds <= 5)
+                  ? "absent"
+                  : ""}
               </Text>
-              <Text className="text-sm px-6 py-4 w-32 text-red-500">
-                absent
+
+              <Text
+                className={`text-sm px-6 py-4 w-32 ${
+                  attendanceStatus.is_time_out &&
+                  remainingSeconds <= 0 &&
+                  !records.some((r) => r.time_out)
+                    ? "text-red-500 font-bold"
+                    : "text-gray-400 font-light"
+                }`}
+              >
+                {attendanceStatus.is_time_out &&
+                remainingSeconds <= 0 &&
+                !records.some((r) => r.time_out)
+                  ? "absent"
+                  : ""}
               </Text>
             </View>
           ) : records.length === 0 ? (
@@ -342,23 +375,40 @@ const AttendanceTable = () => {
                 <Text className="text-sm text-gray-900 font-light px-6 py-4 w-40">
                   {item.user_first_name || "N/A"}
                 </Text>
+
                 <Text
                   className={`text-sm px-6 py-4 w-32 ${
                     item.time_in
                       ? "text-gray-900 font-light"
-                      : "text-red-500 font-bold"
+                      : (!attendanceStatus.is_time_in &&
+                            attendanceStatus.is_time_out) ||
+                          (attendanceStatus.is_time_in &&
+                            remainingSeconds <= 5)
+                        ? "text-red-500 font-bold"
+                        : "text-gray-400 font-light"
                   }`}
                 >
-                  {item.time_in || "absent"}
+                  {item.time_in ||
+                    ((!attendanceStatus.is_time_in &&
+                      attendanceStatus.is_time_out) ||
+                    (attendanceStatus.is_time_in && remainingSeconds <= 5)
+                      ? "absent"
+                      : "")}
                 </Text>
+
                 <Text
                   className={`text-sm px-6 py-4 w-32 ${
                     item.time_out
                       ? "text-gray-900 font-light"
-                      : "text-red-500 font-bold"
+                      : attendanceStatus.is_time_out && remainingSeconds <= 0
+                        ? "text-red-500 font-bold"
+                        : "text-gray-400 font-light"
                   }`}
                 >
-                  {item.time_out || "absent"}
+                  {item.time_out ||
+                    (attendanceStatus.is_time_out && remainingSeconds <= 0
+                      ? "absent"
+                      : "")}
                 </Text>
               </View>
             ))
