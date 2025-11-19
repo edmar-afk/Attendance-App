@@ -63,7 +63,7 @@ const HistoryCard = ({ title, subtitle, date }) => {
             {/* Body and bookmark */}
             <View className="flex-row justify-between items-end">
               <View className="max-w-md">
-                <Text className="text-green-100 mb-2">{subtitle}</Text>
+                <Text className="text-green-100 mb-2 w-72">{subtitle}</Text>
               </View>
 
               <TouchableOpacity className="w-10 h-10 rounded-full bg-green-100 items-center justify-center">

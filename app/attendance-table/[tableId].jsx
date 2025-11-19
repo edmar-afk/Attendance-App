@@ -259,52 +259,45 @@ const AttendanceTable = () => {
       </View>
 
       {/* Filters Section */}
-      <View className="mb-4 mx-2">
-        <Text className="mb-1 font-semibold text-gray-700">Filters</Text>
+      {userSuperuser && (
+        <View className="mb-4 mx-2">
+          <Text className="mb-1 font-semibold text-gray-700">Filters</Text>
 
-        {/* Search Text
-        <TextInput
-          placeholder="Search student..."
-          value={searchText}
-          onChangeText={handleSearchChange}
-          className="border border-gray-300 rounded-lg px-3 py-2 mb-2 bg-white"
-        /> */}
-
-        {/* Dropdowns */}
-        <View className="flex flex-row justify-between">
-          <View className="flex-1 mr-2">
-            <Text className="text-gray-700 mb-1">Course</Text>
-            <View className="border border-gray-300 rounded-lg bg-white">
-              <Picker
-                selectedValue={selectedCourse}
-                onValueChange={(value) => setSelectedCourse(value)}
-              >
-                <Picker.Item label="All" value="" />
-                <Picker.Item label="BSIT" value="BSIT" />
-                <Picker.Item label="BSCS" value="BSCS" />
-                <Picker.Item label="BSECE" value="BSECE" />
-                <Picker.Item label="BSCE" value="BSCE" />
-              </Picker>
+          <View className="flex flex-row justify-between">
+            <View className="flex-1 mr-2">
+              <Text className="text-gray-700 mb-1">Course</Text>
+              <View className="border border-gray-300 rounded-lg bg-white">
+                <Picker
+                  selectedValue={selectedCourse}
+                  onValueChange={(value) => setSelectedCourse(value)}
+                >
+                  <Picker.Item label="All" value="" />
+                  <Picker.Item label="BSIT" value="BSIT" />
+                  <Picker.Item label="BSCS" value="BSCS" />
+                  <Picker.Item label="BSECE" value="BSECE" />
+                  <Picker.Item label="BSCE" value="BSCE" />
+                </Picker>
+              </View>
             </View>
-          </View>
 
-          <View className="flex-1">
-            <Text className="text-gray-700 mb-1">Year Level</Text>
-            <View className="border border-gray-300 rounded-lg bg-white">
-              <Picker
-                selectedValue={selectedYear}
-                onValueChange={(value) => setSelectedYear(value)}
-              >
-                <Picker.Item label="All" value="" />
-                <Picker.Item label="1st Year" value="1st Year" />
-                <Picker.Item label="2nd Year" value="2nd Year" />
-                <Picker.Item label="3rd Year" value="3rd Year" />
-                <Picker.Item label="4th Year" value="4th Year" />
-              </Picker>
+            <View className="flex-1">
+              <Text className="text-gray-700 mb-1">Year Level</Text>
+              <View className="border border-gray-300 rounded-lg bg-white">
+                <Picker
+                  selectedValue={selectedYear}
+                  onValueChange={(value) => setSelectedYear(value)}
+                >
+                  <Picker.Item label="All" value="" />
+                  <Picker.Item label="1st Year" value="1st Year" />
+                  <Picker.Item label="2nd Year" value="2nd Year" />
+                  <Picker.Item label="3rd Year" value="3rd Year" />
+                  <Picker.Item label="4th Year" value="4th Year" />
+                </Picker>
+              </View>
             </View>
           </View>
         </View>
-      </View>
+      )}
 
       <ScrollView horizontal>
         <View>
