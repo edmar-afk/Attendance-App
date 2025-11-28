@@ -137,10 +137,10 @@ const GenerateFingerprint = () => {
         <Text className="text-green-700 font-bold text-lg mt-4">
           {loading ? "Saving..." : "Generate Fingerprint"}
         </Text>
-        <Text className="mt-4 text-center text-orange-600 font-bold">
+        <Text className="mt-4 text-center text-orange-600 font-bold text-xs">
           NOTE: By registering this account, you will not be able to register
           another fingerprint on this app on your phone to prevent attendance
-          cheating - This is one time register per device.
+          cheating. Please register 10 fingerprint id's
         </Text>
       </TouchableOpacity>
     </View>

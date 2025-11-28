@@ -178,7 +178,7 @@ const AttendanceList = () => {
             lon
           );
 
-          const radius = 0.6; // 20 meters
+          const radius = 0.03; // 30 meters
           const accuracyKm = (userLocation.accuracy || 10) / 1000;
 
           const isNearby = distance <= Math.max(radius, accuracyKm);
